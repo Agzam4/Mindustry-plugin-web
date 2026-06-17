@@ -1,0 +1,9 @@
+// @use '@/styles/variables' as *;
+
+.layout {
+    display: grid;
+    grid-template-columns: var(--navbar-width) 1fr;
+    grid-template-rows: 1fr;
+    height: 100vh;
+    width: 100vw;
+}

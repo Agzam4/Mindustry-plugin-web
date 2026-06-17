@@ -1,0 +1,47 @@
+.body {
+    color: var(--text);
+    border: none;
+    background: transparent;
+    width: 100vw;
+    height: 100vh;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+
+    display: grid;
+    justify-content: center;
+    grid-template-rows: 1fr auto 3fr;
+}
+
+.body::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+.box {
+    grid-row: 2;
+    max-width: 400px;
+    width: calc(100vw - 32px);
+
+    border: var(--border);
+    padding: var(--gap-y2) var(--gap-x2);
+    background-color: var(--bg-box);
+    border-radius: var(--border-radius);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+    h1 {
+        color: var(--text-bright);
+        font-size: 1rem;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        font-family: var(--font);
+        margin-top: 0;
+    }
+}
+
+.auth {
+    width: 100%;
+    margin-top: var(--gap-y1);
+}

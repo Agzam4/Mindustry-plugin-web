@@ -1,0 +1,129 @@
+// Layout sizes
+// $navbar-width: 48px;
+
+$dark-shades: (
+    100: #11111b,
+    200: #181825,
+    300: #1a1a2e,
+    400: #1e1e2e,
+    500: #2a2a3e,
+);
+
+$theme-colors: (
+    "bg-deep": map-get($dark-shades, 100),
+    "bg-page": map-get($dark-shades, 200),
+    "bg-input": map-get($dark-shades, 200),
+    "bg-sidebar": map-get($dark-shades, 300),
+    "bg-surface": map-get($dark-shades, 400),
+    "bg-tab": map-get($dark-shades, 400),
+    "bg-element": map-get($dark-shades, 500),
+    "border": map-get($dark-shades, 500),
+);
+
+
+:root {
+
+
+    --pal-shades-100: #11111b;
+    --pal-shades-200: #181824;
+    --pal-shades-300: #1a1a2d;
+    --pal-shades-400: #1e1e2e;
+    --pal-shades-500: #2a2a3e;
+
+    /* Accent */
+    --accent: #5b6ef5;
+    --accent-hover: #6c7eff;
+    --accent-darker: #3d4ec9;
+
+    --accent: #5b6ef5;
+    --accent-glow: rgba(91, 110, 245, 0.15);
+    --accent-glow-strong: rgba(91, 110, 245, 0.25);
+
+    --focus: #5b6ef5;
+
+    /* Background */
+    // --bg-navbar: var(--pal-shades-100);
+    // --bg-page: var(--pal-shades-300);
+    // --bg-box: var(--pal-shades-400);
+    // --bg-darker: var(--pal-shades-200);
+    --bg-navbar: #12132a;
+    --bg-page: #1a1b2e;
+    --bg-box: #1d1e34;
+
+    /* Sizes */
+    --navbar-width: 48px;
+    --gap-x1: 14px;
+    --gap-y1: 6px;
+    --gap-x2: 20px;
+    --gap-y2: 16px;
+    --border-radius: 10px;
+
+    /* Borders */
+    --border: 2px solid #292b4f;
+    --border-light: #35375e;
+    --border-active: #5b6ef5;
+
+    /* Text */
+    --text: #6a6d8a;
+    --text-bright: #ededf2;
+
+    /* Semantic colours */
+    --green: #43b581;
+    --green-dim: #2d7a5a;
+    --orange: #f0a040;
+    --red: #f04747;
+    --pink: #f5a0c0;
+    --purple: #9b59b6;
+    --blue: #5dade2;
+    --teal: #1abc9c;
+    --yellow: #f5c842;
+
+    /* Fonts */
+    --font: Inter, system-ui, sans-serif;
+    --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+
+    /* Scrollbar */
+    --scrollbar-width: 6px;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: var(--border);
+    --scrollbar-thumb-hover: var(--text-dim);
+
+    color: var(--text);
+    background-color: var(--bg-page);
+}
+
+body {
+    margin: 0;
+    font-size: 0.8rem;
+    font-family: var(--font);
+}
+
+*:focus-visible {
+    outline: 2px solid var(--focus);
+}
+
+
+button {
+    user-select: none;
+    font-size: 0.7rem;
+    border: none;
+    color: var(--text-bright);
+    background-color: var(--accent);
+    padding: var(--gap-y1) var(--gap-x1);
+    font-weight: bold;
+    border-radius: var(--border-radius);
+}
+
+button:hover {
+    background-color: var(--accent-darker);
+}
+
+
+.screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10;
+}
