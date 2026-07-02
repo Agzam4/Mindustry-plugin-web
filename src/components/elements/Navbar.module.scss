@@ -1,70 +1,48 @@
 .navbar {
-    background-color: var(--bg-navbar);
+    background: var(--bg-muted);
 
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     z-index: 2;
     grid-row: 1 / -2;
     border-right: var(--border);
     padding: 8px 0px;
+
+    transition: transform var(--transition);
     gap: 4px;
 }
 
 
 .item {
-    appearance: auto;
-    text-rendering: auto;
-    color: buttontext;
-    letter-spacing: normal;
-    word-spacing: normal;
-    line-height: normal;
-    text-transform: none;
-    text-indent: 0px;
-    text-shadow: none;
-    display: inline-block;
-    text-align: center;
-    cursor: default;
-    box-sizing: border-box;
-    background-color: buttonface;
-    margin: 0em 0em 0em 0em;
-    padding-block: 1px;
-    padding-inline: 6px;
-    border-width: 2px;
-    border-style: outset;
-    border-color: buttonborder;
-    border-image: initial;
-
-    width: 40px;
-    height: 40px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: var(--text-dim);
-    cursor: pointer;
+    color: var(--text-secondary);
+    margin: 0 9px;
     position: relative;
-    background: none;
-    border-width: medium;
-    border-style: none;
-    border-color: currentcolor;
-    border-image: initial;
-    border-radius: 4px;
-    transition: 0.12s;
+    padding: 4px;
+    border-radius: var(--border-radius);
+}
 
-    outline-offset: 0px;
+.active {
+    color: var(--accent);
+    background: var(--accent-glow);
+}
 
-    * {
-        outline: none;
-    }
+.item::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: calc(50% - 30%);
+    width: 3px;
+    height: 60%;
+    background: var(--accent);
+    border-radius: 0px 3px 3px 0px;
+    transform: scale(0);
+    transition: var(--transition);
 }
 
 .active::before {
     content: "";
-    position: absolute;
-    left: -2px;
-    top: 6px;
-    width: 2px;
-    height: 28px;
-    background: var(--accent);
-    // border-radius: 1px;
+    transform: scale(1);
 }
