@@ -19,104 +19,104 @@ interface Props {
 
 export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
     const [logs, setLogs] = useState<LogEntity[]>([])
-    const [loading, setLoading] = useState<boolean>(false)
+    const [loading, setLoading] = useState<boolean>(true)
     const [hasMore, setHasMore] = useState<boolean>(true)
 
     const nextIdRef = useRef<number | null>(null)
+    const triggerNodeRef = useRef<HTMLElement | null>(null)
     const observerRef = useRef<IntersectionObserver | null>(null)
+
+    const fetchChunk = useCallback(async (explicitId: number | null = null) => {
+        setLoading(true)
+        try {
+            let startId = explicitId
+
+            if (startId === null) {
+                const [lid, err] = await apiLogs.lastId(filters)
+                if (err) throw err
+                startId = lid
+            }
+
+            if (startId <= 0) {
+                setHasMore(false)
+                return []
+            }
+
+            const entries = await logBuffer.get(startId, pageSize)
+            if (entries.length === 0) {
+                setHasMore(false)
+                return []
+            }
+
+            const lastItem = entries[entries.length - 1]
+            nextIdRef.current = lastItem.globalId - 1
+
+            if (nextIdRef.current < 0) setHasMore(false)
+            return entries
+
+        } catch (error) {
+            console.error("Fetch error:", error)
+            setHasMore(false)
+            return []
+        } finally {
+            setLoading(false)
+        }
+    }, [logBuffer, pageSize, apiLogs, JSON.stringify(filters)])
 
     const loadMore = useCallback(async () => {
         if (loading || !hasMore || nextIdRef.current === null) return
+
         if (nextIdRef.current <= 0) {
             setHasMore(false)
             return
         }
 
-        setLoading(true)
-        try {
-            const currentId = nextIdRef.current
-            const newEntries = await logBuffer.get(currentId, pageSize)
-
-            if (newEntries.length === 0) {
-                setHasMore(false)
-                return
-            }
-
+        const newEntries = await fetchChunk(nextIdRef.current)
+        if (newEntries.length > 0) {
             setLogs((prev) => [...prev, ...newEntries])
-            nextIdRef.current = newEntries[newEntries.length - 1].globalId - 1
-            ///currentId - pageSize
-
-            if (nextIdRef.current < 0) {
-                setHasMore(false)
-            }
-        } catch (error) {
-            console.error(error)
-        } finally {
-            setLoading(false)
         }
-    }, [logBuffer, loading, hasMore, pageSize])
+    }, [loading, hasMore, fetchChunk])
 
     useEffect(() => {
         let isMounted = true
 
-        async function initFirstLoad() {
-            setLoading(true)
-            setHasMore(true)
+        setLoading(true)
+        setHasMore(true)
+        nextIdRef.current = null
 
-            try {
-                const [lid, err] = await apiLogs.lastId(filters)
-                if (err) throw err
-
-                if (isMounted) {
-                    if (lid <= 0) {
-                        setLogs([])
-                        setHasMore(false)
-                        return
-                    }
-
-                    nextIdRef.current = lid
-                    const firstEntries = await logBuffer.get(lid, pageSize)
-
-                    setLogs(firstEntries)
-                    nextIdRef.current = firstEntries[firstEntries.length - 1].globalId - 1
-
-                    if (nextIdRef.current < 0 || firstEntries.length === 0) {
-                        setHasMore(false)
-                    }
-                }
-            } catch (error) {
-                console.error(error)
-                if (isMounted) {
-                    setLogs([])
-                    setHasMore(false)
-                }
-            } finally {
-                if (isMounted) setLoading(false)
+        fetchChunk(null).then((firstEntries) => {
+            if (isMounted) {
+                setLogs(firstEntries)
             }
-        }
-
-        initFirstLoad()
+        })
 
         return () => {
             isMounted = false
-            if (observerRef.current) observerRef.current.disconnect()
         }
-    }, [logBuffer, apiLogs, pageSize, JSON.stringify(filters)])
+    }, [fetchChunk])
 
-    const triggerRef = useCallback((node: HTMLElement | null) => {
-        if (loading) return
+    useEffect(() => {
         if (observerRef.current) observerRef.current.disconnect()
 
+        if (loading || !hasMore || !triggerNodeRef.current) return
+
         observerRef.current = new IntersectionObserver((entries) => {
-            const [entry] = entries;
-            if (entry && entry.isIntersecting && hasMore) {
+            const [entry] = entries
+            if (entry && entry.isIntersecting) {
                 loadMore()
             }
-        }, { rootMargin: '100px' })
+        }, { rootMargin: '150px' })
 
-        if (node) observerRef.current.observe(node)
-    }, [loading, hasMore, loadMore])
+        observerRef.current.observe(triggerNodeRef.current)
 
+        return () => {
+            if (observerRef.current) observerRef.current.disconnect()
+        }
+    }, [loading, hasMore, logs, loadMore])
+
+    const triggerRef = useCallback((node: HTMLElement | null) => {
+        triggerNodeRef.current = node
+    }, [])
 
     return { logs, loading, hasMore, triggerRef }
 }
