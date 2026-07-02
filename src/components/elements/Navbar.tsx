@@ -18,7 +18,7 @@ export function Navbar() {
     return (
         <div className={style.navbar}>
             {
-                routers.map(r => <NavbarItem router={r} />)
+                routers.map((r, id) => <NavbarItem router={r} key={id} />)
             }
         </div>
     );

@@ -11,6 +11,7 @@ export type FetchFn = (fromId: number, limit: number) => Promise<LogEntity[]>
 
 const PAGE_SIZE = 10
 const MAX_CHUNKS = 10
+const debug = !true
 
 export class LogBuffer {
 
@@ -28,25 +29,33 @@ export class LogBuffer {
 
     /** Update last used of chunk and init it of not exsist */
     private async touchChunk(chunk: number) {
-        // TODO: cache + remove lru chunks
+        // TODO: remove lru chunks
 
-        // if (this.chunks[chunk] == null) {
-        const starId = (chunk + 1) * PAGE_SIZE
-        this.chunks[chunk] = {
-            id: starId,
-            size: PAGE_SIZE,
-            lastUsed: ++this.seq,
-            entries: (await this.fetch(starId, PAGE_SIZE)).filter(c => c !== null && c !== undefined)
+        if (this.chunks[chunk] == null) {
+            const starId = (chunk + 1) * PAGE_SIZE - 1
+            this.chunks[chunk] = {
+                id: starId,
+                size: PAGE_SIZE,
+                lastUsed: ++this.seq,
+                entries: (await this.fetch(starId, PAGE_SIZE)).filter(c => c !== null && c !== undefined)
+            }
+            const c = this.chunks[chunk]
+            c.entries.sort((e1, e2) => e2.globalId - e1.globalId)
+
+            if (debug) {
+                const ids = c.entries.map(e => e.globalId).reverse()
+                const min = c.id - c.size + 1
+                const max = c.id
+                console.log(`Fetch chunk [${min},${max}]: ${ids[0]},${ids[ids.length - 1]}`, c.entries.map(e => e.globalId).reverse())
+                if (ids[0] < min) console.error("Recived entity id too small")
+                if (ids[ids.length - 1] > max) console.error("Recived entity id too small")
+            }
+
+            return this.chunks[chunk]
         }
-        this.chunks[chunk].entries.sort((e1, e2) => e2.globalId - e1.globalId)
-
-        console.log(`Fetch chunk [${this.chunks[chunk].id - this.chunks[chunk].size + 1},${this.chunks[chunk].id}]`, this.chunks[chunk].entries.map(e => e.globalId).reverse())
-        console.log(this.chunks[chunk])
-        return this.chunks[chunk]
-        // }
-        // this.chunks[chunk].lastUsed = ++this.seq
+        this.chunks[chunk].lastUsed = ++this.seq
         // console.log(`Update chunk [${this.chunks[chunk].id},${this.chunks[chunk].id + this.chunks[chunk].size - 1}]`)
-        // return this.chunks[chunk]
+        return this.chunks[chunk]
     }
 
     /** Update last used of chunks in range and init they of not exsist */
@@ -59,26 +68,35 @@ export class LogBuffer {
 
     /** Collect entities from given id to 0 */
     public async get(id: number, limit: number) {
-        console.log(`GET [${id - limit},${id}]`)
+        if (debug) console.log(`GET <= ${id} (${limit})`)
         const entries: LogEntity[] = []
         let cid = id
+        let index = 0
+        let allowedNonfull = 0
         while (true) {
             const chunkId = this.chunkId(cid)
-            console.log(chunkId * PAGE_SIZE)
+            // if (debug) console.log(chunkId * PAGE_SIZE)
             const chunk = await this.touchChunk(chunkId)
             cid -= chunk.size
+
+            if (chunk.entries.length !== chunk.size) {
+                if (++allowedNonfull > 1) {
+                    if (debug) console.error("To many non full responces")
+                }
+            }
             for (let e = 0; e < chunk.entries.length; e++) {
                 if (limit <= 0) {
-                    console.log(">", entries)
+                    if (debug) console.log(">", entries)
 
                     return entries
                 }
                 if (chunk.entries[e].globalId > id) continue
-                entries.push(chunk.entries[e])
+                entries[index++] = chunk.entries[e]
                 limit--;
             }
+            // console.log(entries.map(e => e ? e.globalId : "XXX"))
             if (cid <= 0) {
-                console.log(">", entries)
+                if (debug) console.log(">", entries)
                 return entries
             }
         }

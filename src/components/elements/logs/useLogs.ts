@@ -17,7 +17,7 @@ interface Props {
     filters: Filters
 }
 
-export function useLogs({ logBuffer, apiLogs, pageSize = 50, filters }: Props) {
+export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
     const [logs, setLogs] = useState<LogEntity[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [hasMore, setHasMore] = useState<boolean>(true)
@@ -43,9 +43,10 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 50, filters }: Props) {
             }
 
             setLogs((prev) => [...prev, ...newEntries])
-            nextIdRef.current = currentId - pageSize
+            nextIdRef.current = newEntries[newEntries.length - 1].globalId - 1
+            ///currentId - pageSize
 
-            if (nextIdRef.current <= 0) {
+            if (nextIdRef.current < 0) {
                 setHasMore(false)
             }
         } catch (error) {
@@ -65,7 +66,6 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 50, filters }: Props) {
             try {
                 const [lid, err] = await apiLogs.lastId(filters)
                 if (err) throw err
-                console.log("Latest", lid)
 
                 if (isMounted) {
                     if (lid <= 0) {
@@ -78,9 +78,9 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 50, filters }: Props) {
                     const firstEntries = await logBuffer.get(lid, pageSize)
 
                     setLogs(firstEntries)
-                    nextIdRef.current = lid - pageSize
+                    nextIdRef.current = firstEntries[firstEntries.length - 1].globalId - 1
 
-                    if (nextIdRef.current <= 0 || firstEntries.length === 0) {
+                    if (nextIdRef.current < 0 || firstEntries.length === 0) {
                         setHasMore(false)
                     }
                 }
@@ -116,6 +116,7 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 50, filters }: Props) {
 
         if (node) observerRef.current.observe(node)
     }, [loading, hasMore, loadMore])
+
 
     return { logs, loading, hasMore, triggerRef }
 }
