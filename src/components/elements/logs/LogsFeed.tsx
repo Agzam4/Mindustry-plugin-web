@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso'
 import type { LogEntity } from '@/api/gen/api'
 import { LogsFeedItem } from './LogsFeedItem'
@@ -13,10 +13,16 @@ interface Props {
 }
 
 export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [] } }: Props) {
+    const [selectedRow, setSelectedRow] = useState<number | null>(null)
+
     const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters })
 
     const virtuosoRef = useRef<VirtuosoHandle>(null)
     const initialScrolled = useRef(false)
+
+    useEffect(() => {
+        initialScrolled.current = false
+    }, [JSON.stringify(filters)])
 
     useEffect(() => {
         if (logs.length > 0 && !initialScrolled.current && !loading) {
@@ -31,6 +37,7 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
         }
     }, [logs, loading])
 
+
     if (logs.length === 0 && !loading) {
         return (
             <div className={style.feed}>
@@ -44,6 +51,7 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
     return (
         <div className={style.feed}>
             <Virtuoso
+                key={JSON.stringify(filters)}
                 ref={virtuosoRef}
                 style={{ height: '100%' }}
                 data={logs}
@@ -54,8 +62,11 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
                 itemContent={(index, entry) => (
                     <LogsFeedItem
                         entry={entry}
-                        selected={entry.globalId === selectedId}
-                        onClick={onSelect}
+                        selected={entry.globalId === selectedRow}
+                        onClick={e => {
+                            setSelectedRow(e.globalId)
+                            onSelect(e)
+                        }}
                     />
                 )}
                 components={{

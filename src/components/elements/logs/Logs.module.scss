@@ -7,6 +7,24 @@
     overflow: hidden;
 }
 
+
+.centerPanel {
+    background: var(--bg-primary);
+
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+.rightPanel {
+    background: var(--bg-secondary);
+    border-left: var(--border);
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+
+    overflow-y: auto;
+}
+
 // Filters panel
 
 .filters {
@@ -101,7 +119,6 @@
 // Feed
 
 .feed {
-    background: var(--bg-primary);
     overflow: hidden;
 }
 
@@ -292,9 +309,6 @@
 // Details panel
 
 .details {
-    background: var(--bg-secondary);
-    border-left: var(--border);
-    overflow-y: auto;
     padding: var(--gap-y1) var(--gap-x1);
 }
 
@@ -304,6 +318,8 @@
     font-style: italic;
     text-align: center;
     margin-top: 40%;
+    left: auto;
+    right: auto;
 }
 
 .detailTitle {

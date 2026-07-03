@@ -11,10 +11,11 @@ interface Props {
 
 const INITIAL_PAGES = 1
 
-export function useLogs({ initId, pageSize = 10, filters }: Props) {
+export function useLogs({ initId, pageSize = 25, filters }: Props) {
     const stringifiedFilters = JSON.stringify(filters)
     const lastFiltersRef = useRef(stringifiedFilters)
     const bufferRef = useRef<LogBuffer>(null!)
+    const firstItemIndexRef = useRef<number | null>(null)
 
     // Timelime A -[a, b]-> B
     const [logs, setLogs] = useState<LogEntity[]>([])
@@ -37,6 +38,7 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
         bufferRef.current = new LogBuffer(filters)
         lastFiltersRef.current = stringifiedFilters
 
+        firstItemIndexRef.current = null
         loadingRef.current = false
         pastDelayedRef.current = false
         futureDelayedRef.current = false
@@ -57,14 +59,11 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
         loadingRef.current = true
         try {
             const entries = await (direction === 'past' ? bufferRef.current.past(startId.current, pageSize) : bufferRef.current.future(startId.current, pageSize));
-            console.log(entries.map(e => e.globalId))
             if (entries.length == 0) {
                 startId.current = direction === 'past' ? 0 : startId.current + 1
                 return entries
             }
-
             startId.current = direction === 'past' ? entries[0].globalId - 1 : entries[entries.length - 1].globalId + 1
-            console.log(startId.current)
             return entries
         } catch (error) {
             console.error("Fetch error:", error)
@@ -88,14 +87,14 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
 
         setLoading(true)
         setHasMoreOlder(true)
-        setHasMoreNewer(false)
+        setHasMoreNewer(true)
         pastIndexRef.current = null
         futureIndexRef.current = null
             ; (async () => {
                 let lid: number | null = initId
                 if (lid === null) {
                     const [lastId, err] = await Api.logs.lastId()
-                    console.log("No id provided, fetched: ", lid)
+                    console.log("No id provided, fetched: ", lastId)
                     if (lastId !== null) lid = lastId
                 }
 
@@ -124,6 +123,8 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
                 const oldest = entries[0].globalId
                 const newest = entries[entries.length - 1].globalId
 
+                firstItemIndexRef.current = lid
+
                 pastIndexRef.current = Math.max(0, oldest - 1)
                 futureIndexRef.current = newest + 1
                 setHasMoreOlder(oldest > 0)
@@ -145,12 +146,14 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
             setHasMoreOlder(false)
             return
         }
+        if (firstItemIndexRef.current) firstItemIndexRef.current -= entries.length
+
         setLogs(prev => [...entries, ...prev])
         if (entries.length < pageSize || entries[0].globalId <= 0) {
             setHasMoreOlder(false)
             return
         }
-    }, [fetchChunk, hasPast])
+    }, [fetchChunk, hasPast, stringifiedFilters])
 
     const loadNewer = useCallback(async () => {
         if (!hasFuture) return // no future, lol
@@ -170,9 +173,9 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
             setHasMoreNewer(false)
             return
         }
-    }, [fetchChunk, hasFuture])
+    }, [fetchChunk, hasFuture, stringifiedFilters])
 
     const firstItemIndex = logs.length > 0 ? logs[0].globalId : 0
 
-    return { logs, loading, hasMoreOlder: hasPast, hasMoreNewer: hasFuture, loadOlder, loadNewer, firstItemIndex }
+    return { logs, loading, hasMoreOlder: hasPast, hasMoreNewer: hasFuture, loadOlder, loadNewer, firstItemIndex: firstItemIndexRef.current ?? firstItemIndex }
 }

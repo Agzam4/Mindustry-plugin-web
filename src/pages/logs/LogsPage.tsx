@@ -16,8 +16,12 @@ export default function LogsPage() {
     return (
         <div className={style.panels}>
             <LogsFilters filters={filters} onChange={setFilters} />
-            <LogsFeedMemo selectedId={selected === null ? null : selected.id} onSelect={setSelected} />
-            {filters.tags.length == 0 ? <LogsDetails entry={selected} /> : <LogsFeed filters={{ tags: [9] }} />}
+            <main className={style.centerPanel}>
+                <LogsFeedMemo selectedId={selected === null ? null : selected.id} onSelect={setSelected} />
+            </main>
+            <aside className={style.rightPanel}>
+                {filters.tags.length == 0 ? <LogsDetails entry={selected} /> : <LogsFeed filters={filters} />}
+            </aside>
         </div>
     )
 }
