@@ -3,42 +3,33 @@ import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso'
 import type { LogEntity } from '@/api/gen/api'
 import { LogsFeedItem } from './LogsFeedItem'
 import style from './Logs.module.scss'
+import { useLogs } from './useLogs'
 
 interface Props {
-    entries: LogEntity[]
     selectedId: number | null
-    loading: boolean
-    hasMoreOlder: boolean
-    hasMoreNewer: boolean
     onSelect: (entry: LogEntity) => void
-    onLoadOlder: () => void
-    onLoadNewer: () => void
-    firstItemIndex: number
 }
 
-export function LogsFeed({
-    entries, selectedId, loading,
-    hasMoreOlder, hasMoreNewer,
-    onSelect, onLoadOlder, onLoadNewer,
-    firstItemIndex,
-}: Props) {
+export function LogsFeed({ selectedId, onSelect }: Props) {
+    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters: {} })
+
     const virtuosoRef = useRef<VirtuosoHandle>(null)
     const initialScrolled = useRef(false)
 
     useEffect(() => {
-        if (entries.length > 0 && !initialScrolled.current && !loading) {
+        if (logs.length > 0 && !initialScrolled.current && !loading) {
             initialScrolled.current = true
             requestAnimationFrame(() => {
                 virtuosoRef.current?.scrollToIndex({
-                    index: entries.length - 1,
+                    index: logs.length - 1,
                     align: 'end',
                     behavior: 'auto',
                 })
             })
         }
-    }, [entries, loading])
+    }, [logs, loading])
 
-    if (entries.length === 0 && !loading) {
+    if (logs.length === 0 && !loading) {
         return (
             <div className={style.feed}>
                 <div className={style.sentinel}>
@@ -53,10 +44,10 @@ export function LogsFeed({
             <Virtuoso
                 ref={virtuosoRef}
                 style={{ height: '100%' }}
-                data={entries}
+                data={logs}
                 firstItemIndex={firstItemIndex}
-                startReached={onLoadOlder}
-                endReached={onLoadNewer}
+                startReached={loadOlder}
+                endReached={loadNewer}
                 increaseViewportBy={{ top: 400, bottom: 400 }}
                 itemContent={(index, entry) => (
                     <LogsFeedItem

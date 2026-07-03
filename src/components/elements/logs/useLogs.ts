@@ -1,25 +1,26 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
-import type { LogEntity } from '@/api/gen/api'
+import { Api, type LogEntity } from '@/api/gen/api'
 import { LogBuffer } from './LogBuffer'
 
 export interface Filters {
     // TODO: add filters
 }
 
-interface ApiLogs {
-    lastId: (filters?: Filters) => Promise<[number | null, any]>
-}
-
 interface Props {
-    logBuffer: LogBuffer
-    apiLogs: ApiLogs
+    initId: number | null
     pageSize?: number
     filters: Filters
 }
 
 const INITIAL_PAGES = 1
 
-export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
+export function useLogs({ initId, pageSize = 10, filters }: Props) {
+
+    const bufferRef = useRef<LogBuffer>(null!)
+    if (!bufferRef.current) {
+        bufferRef.current = new LogBuffer()
+    }
+
     // Timelime A -[a, b]-> B
     const [logs, setLogs] = useState<LogEntity[]>([])
     const [loading, setLoading] = useState<boolean>(true)
@@ -51,7 +52,12 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
         setLoading(true)
         loadingRef.current = true
         try {
-            const entries = await (direction === 'past' ? logBuffer.past(startId.current, pageSize) : logBuffer.future(startId.current, pageSize))
+            const entries = await (direction === 'past' ? bufferRef.current.past(startId.current, pageSize) : bufferRef.current.future(startId.current, pageSize));
+            if (entries.length == 0) {
+                startId.current = direction === 'past' ? 0 : startId.current + 1
+                return entries
+            }
+
             startId.current = direction === 'past' ? entries[0].globalId - 1 : entries[entries.length - 1].globalId + 1
             return entries
         } catch (error) {
@@ -69,7 +75,7 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
                 loadNewer()
             }
         }
-    }, [logBuffer, pageSize])
+    }, [pageSize])
 
     useEffect(() => {
         let cancelled = false
@@ -79,9 +85,14 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
         setHasMoreNewer(false)
         pastIndexRef.current = null
         futureIndexRef.current = null
-
             ; (async () => {
-                const [lid] = await apiLogs.lastId(filters)
+                let lid: number | null = initId
+                if (lid === null) {
+                    const [lastId, err] = await Api.logs.lastId()
+                    console.log("No id provided, fetched: ", lid)
+                    if (lastId !== null) lid = lastId
+                }
+
                 if (cancelled) return
                 if (lid == null || lid <= 0) {
                     setHasMoreOlder(false)
@@ -90,10 +101,10 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
                     return
                 }
 
-                console.log("Latest log:", lid)
+                console.log("Selected log:", lid)
                 const startFrom = Math.floor(lid)
 
-                const entries = await logBuffer.past(startFrom, pageSize)
+                const entries = await bufferRef.current.past(startFrom, pageSize)
                 if (cancelled) return
                 if (entries.length === 0) {
                     setHasMoreOlder(false)

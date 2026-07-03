@@ -1,4 +1,4 @@
-import type { LogEntity } from '@/api/gen/api'
+import { Api, type LogEntity } from '@/api/gen/api'
 
 interface Chunk {
     id: number // maximum id
@@ -17,10 +17,18 @@ export class LogBuffer {
 
     private chunks: Chunk[] = []
     private seq = 0
-    private fetch: FetchFn
 
-    constructor(fetch: FetchFn) {
-        this.fetch = fetch
+    constructor() { }
+
+    private async fetch(fromId: number, limit: number) {
+        const [data] = await Api.logs.search({
+            id: fromId,
+            limit,
+            t1: 0, t2: 999999999999999,
+            tags: [],
+            query: "",
+        })
+        return data ?? []
     }
 
     private chunkId(id: number) {
