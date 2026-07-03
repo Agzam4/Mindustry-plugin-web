@@ -35,7 +35,7 @@ export default function LogsPage() {
         },
     }).current
 
-    const { logs, loading, hasMore, triggerRef } = useLogs({
+    const { logs, loading, hasMore, loadMore } = useLogs({
         logBuffer: bufferRef.current,
         apiLogs,
         pageSize: 10,
@@ -56,7 +56,7 @@ export default function LogsPage() {
                 loading={loading}
                 hasMore={hasMore}
                 onSelect={setSelected}
-                triggerRef={triggerRef}
+                onLoadMore={loadMore}
             />
             <LogsDetails entry={selected} />
         </div>

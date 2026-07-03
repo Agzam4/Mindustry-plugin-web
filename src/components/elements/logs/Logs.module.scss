@@ -106,6 +106,20 @@
     overflow-y: auto;
     overflow-x: hidden;
     background: var(--bg-primary);
+
+    overflow-anchor: none;
+}
+
+.sentinel {
+    display: flex;
+    justify-content: center;
+    padding: var(--gap-y2);
+
+    overflow-anchor: none;
+}
+
+.anchor {
+    overflow-anchor: auto;
 }
 
 .item {
@@ -124,6 +138,8 @@
         background: rgba(255, 255, 255, 0.03);
     }
 }
+
+
 
 .itemDot {
     position: relative;
@@ -251,11 +267,6 @@
     background: #4ecca3;
 }
 
-.sentinel {
-    display: flex;
-    justify-content: center;
-    padding: var(--gap-y2);
-}
 
 .loading {
     color: var(--text);

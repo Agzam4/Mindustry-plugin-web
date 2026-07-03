@@ -18,13 +18,13 @@ interface Props {
 }
 
 export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
-    const [logs, setLogs] = useState<LogEntity[]>([])
+    const [logs, setLogs] = useState<any[]>([])
     const [loading, setLoading] = useState<boolean>(true)
     const [hasMore, setHasMore] = useState<boolean>(true)
 
     const nextIdRef = useRef<number | null>(null)
-    const triggerNodeRef = useRef<HTMLElement | null>(null)
-    const observerRef = useRef<IntersectionObserver | null>(null)
+
+    const stringifiedFilters = JSON.stringify(filters)
 
     const fetchChunk = useCallback(async (explicitId: number | null = null) => {
         setLoading(true)
@@ -43,6 +43,9 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
             }
 
             const entries = await logBuffer.get(startId, pageSize)
+
+            await new Promise((resolve) => setTimeout(resolve, 500))
+
             if (entries.length === 0) {
                 setHasMore(false)
                 return []
@@ -61,7 +64,7 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
         } finally {
             setLoading(false)
         }
-    }, [logBuffer, pageSize, apiLogs, JSON.stringify(filters)])
+    }, [logBuffer, pageSize, apiLogs, stringifiedFilters])
 
     const loadMore = useCallback(async () => {
         if (loading || !hasMore || nextIdRef.current === null) return
@@ -95,28 +98,5 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
         }
     }, [fetchChunk])
 
-    useEffect(() => {
-        if (observerRef.current) observerRef.current.disconnect()
-
-        if (loading || !hasMore || !triggerNodeRef.current) return
-
-        observerRef.current = new IntersectionObserver((entries) => {
-            const [entry] = entries
-            if (entry && entry.isIntersecting) {
-                loadMore()
-            }
-        }, { rootMargin: '150px' })
-
-        observerRef.current.observe(triggerNodeRef.current)
-
-        return () => {
-            if (observerRef.current) observerRef.current.disconnect()
-        }
-    }, [loading, hasMore, logs, loadMore])
-
-    const triggerRef = useCallback((node: HTMLElement | null) => {
-        triggerNodeRef.current = node
-    }, [])
-
-    return { logs, loading, hasMore, triggerRef }
+    return { logs, loading, hasMore, loadMore }
 }
