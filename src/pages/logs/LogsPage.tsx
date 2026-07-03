@@ -12,7 +12,6 @@ import type { LogFilters } from '@/components/elements/logs/types'
 export default function LogsPage() {
     const [selected, setSelected] = useState<LogEntity | null>(null)
     const [uiFilters, setUiFilters] = useState<LogFilters>({ tags: [], query: '', t1: 0 })
-    const feedRef = useRef<HTMLDivElement>(null)
 
     const bufferRef = useRef<LogBuffer>(null!)
     if (!bufferRef.current) {
@@ -35,7 +34,12 @@ export default function LogsPage() {
         },
     }).current
 
-    const { logs, loading, hasMore, loadMore } = useLogs({
+    const {
+        logs, loading,
+        hasMoreOlder, hasMoreNewer,
+        loadOlder, loadNewer,
+        firstItemIndex,
+    } = useLogs({
         logBuffer: bufferRef.current,
         apiLogs,
         pageSize: 10,
@@ -50,13 +54,15 @@ export default function LogsPage() {
         <div className={style.panels}>
             <LogsFilters filters={uiFilters} onChange={updateFilters} />
             <LogsFeed
-                ref={feedRef}
                 entries={logs}
                 selectedId={selected?.globalId ?? null}
                 loading={loading}
-                hasMore={hasMore}
+                hasMoreOlder={hasMoreOlder}
+                hasMoreNewer={hasMoreNewer}
                 onSelect={setSelected}
-                onLoadMore={loadMore}
+                onLoadOlder={loadOlder}
+                onLoadNewer={loadNewer}
+                firstItemIndex={firstItemIndex}
             />
             <LogsDetails entry={selected} />
         </div>

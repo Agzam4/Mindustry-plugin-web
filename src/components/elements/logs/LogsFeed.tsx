@@ -1,58 +1,82 @@
-import { forwardRef } from 'react'
+import { useEffect, useRef } from 'react'
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso'
 import type { LogEntity } from '@/api/gen/api'
 import { LogsFeedItem } from './LogsFeedItem'
 import style from './Logs.module.scss'
-import { useFeed } from './useFeed'
 
 interface Props {
     entries: LogEntity[]
     selectedId: number | null
     loading: boolean
-    hasMore: boolean
+    hasMoreOlder: boolean
+    hasMoreNewer: boolean
     onSelect: (entry: LogEntity) => void
-    onLoadMore: () => void
+    onLoadOlder: () => void
+    onLoadNewer: () => void
+    firstItemIndex: number
 }
 
-export const LogsFeed = forwardRef<HTMLDivElement, Props>(
-    function LogsFeed({ entries, selectedId, loading, hasMore, onSelect, onLoadMore }, ref) {
+export function LogsFeed({
+    entries, selectedId, loading,
+    hasMoreOlder, hasMoreNewer,
+    onSelect, onLoadOlder, onLoadNewer,
+    firstItemIndex,
+}: Props) {
+    const virtuosoRef = useRef<VirtuosoHandle>(null)
+    const initialScrolled = useRef(false)
 
-        const triggerRef = useFeed({
-            loading,
-            hasMore,
-            onLoadMore,
-            rootMargin: '150px'
-        })
+    useEffect(() => {
+        if (entries.length > 0 && !initialScrolled.current && !loading) {
+            initialScrolled.current = true
+            requestAnimationFrame(() => {
+                virtuosoRef.current?.scrollToIndex({
+                    index: entries.length - 1,
+                    align: 'end',
+                    behavior: 'auto',
+                })
+            })
+        }
+    }, [entries, loading])
 
+    if (entries.length === 0 && !loading) {
         return (
-            <div ref={ref} className={style.feed}>
-                {entries.map(e => (
-                    <LogsFeedItem
-                        key={e.globalId}
-                        entry={e}
-                        selected={e.globalId === selectedId}
-                        onClick={onSelect}
-                    />
-                ))}
-
-                {loading && (
-                    <div className={style.sentinel}>
-                        <span className={style.loading}>Загрузка…</span>
-                    </div>
-                )}
-
-                {hasMore && !loading && <div ref={triggerRef} className={style.sentinel} />}
-
-                {!hasMore && !loading && entries.length > 0 && (
-                    <div className={style.sentinel}>
-                        <span className={style.endMarker}>— начало логов —</span>
-                    </div>
-                )}
-                {!hasMore && !loading && entries.length === 0 && (
-                    <div className={style.sentinel}>
-                        <span className={style.endMarker}>Нет записей</span>
-                    </div>
-                )}
+            <div className={style.feed}>
+                <div className={style.sentinel}>
+                    <span className={style.endMarker}>===</span>
+                </div>
             </div>
         )
     }
-)
+
+    return (
+        <div className={style.feed}>
+            <Virtuoso
+                ref={virtuosoRef}
+                style={{ height: '100%' }}
+                data={entries}
+                firstItemIndex={firstItemIndex}
+                startReached={onLoadOlder}
+                endReached={onLoadNewer}
+                itemContent={(index, entry) => (
+                    <LogsFeedItem
+                        entry={entry}
+                        selected={entry.globalId === selectedId}
+                        onClick={onSelect}
+                    />
+                )}
+                components={{
+                    Header: () => loading && hasMoreOlder ? (
+                        <div className={style.sentinel}>
+                            <span className={style.loading}>Loading…</span>
+                        </div>
+                    ) : null,
+                    Footer: () => loading && hasMoreNewer ? (
+                        <div className={style.sentinel}>
+                            <span className={style.loading}>Loading…</span>
+                        </div>
+                    ) : null,
+                }}
+            />
+        </div>
+    )
+}

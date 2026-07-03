@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { NetError, LogEntity } from '@/api/gen/api'
+import type { LogEntity } from '@/api/gen/api'
 import { LogBuffer } from './LogBuffer'
 
 export interface Filters {
@@ -7,7 +7,7 @@ export interface Filters {
 }
 
 interface ApiLogs {
-    lastId: (filters?: Filters) => Promise<[number, any]>
+    lastId: (filters?: Filters) => Promise<[number | null, any]>
 }
 
 interface Props {
@@ -17,86 +17,164 @@ interface Props {
     filters: Filters
 }
 
-export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
-    const [logs, setLogs] = useState<any[]>([])
-    const [loading, setLoading] = useState<boolean>(true)
-    const [hasMore, setHasMore] = useState<boolean>(true)
+const INITIAL_PAGES = 5
 
-    const nextIdRef = useRef<number | null>(null)
+export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
+    const [logs, setLogs] = useState<LogEntity[]>([])
+    const [loading, setLoading] = useState<boolean>(true)
+    const [hasMoreOlder, setHasMoreOlder] = useState<boolean>(true)
+    const [hasMoreNewer, setHasMoreNewer] = useState<boolean>(false)
+
+    const nextOlderIdRef = useRef<number | null>(null)
+    const nextNewerIdRef = useRef<number | null>(null)
+    const loadingRef = useRef(false)
+    const logsRef = useRef<LogEntity[]>(logs)
+    logsRef.current = logs
 
     const stringifiedFilters = JSON.stringify(filters)
 
-    const fetchChunk = useCallback(async (explicitId: number | null = null) => {
+    const fetchChunk = useCallback(async (startId: number): Promise<LogEntity[]> => {
         setLoading(true)
+        loadingRef.current = true
         try {
-            let startId = explicitId
-
-            if (startId === null) {
-                const [lid, err] = await apiLogs.lastId(filters)
-                if (err) throw err
-                startId = lid
-            }
-
-            if (startId <= 0) {
-                setHasMore(false)
-                return []
-            }
-
             const entries = await logBuffer.get(startId, pageSize)
-
-            await new Promise((resolve) => setTimeout(resolve, 500))
-
-            if (entries.length === 0) {
-                setHasMore(false)
-                return []
-            }
-
-            const lastItem = entries[entries.length - 1]
-            nextIdRef.current = lastItem.globalId - 1
-
-            if (nextIdRef.current < 0) setHasMore(false)
             return entries
-
         } catch (error) {
             console.error("Fetch error:", error)
-            setHasMore(false)
             return []
         } finally {
             setLoading(false)
+            loadingRef.current = false
         }
-    }, [logBuffer, pageSize, apiLogs, stringifiedFilters])
+    }, [logBuffer, pageSize])
 
-    const loadMore = useCallback(async () => {
-        if (loading || !hasMore || nextIdRef.current === null) return
+    useEffect(() => {
+        let cancelled = false
 
-        if (nextIdRef.current <= 0) {
-            setHasMore(false)
+        setLoading(true)
+        setHasMoreOlder(true)
+        setHasMoreNewer(false)
+        nextOlderIdRef.current = null
+        nextNewerIdRef.current = null
+
+            ; (async () => {
+                const [lid] = await apiLogs.lastId(filters)
+                if (cancelled) return
+                if (lid == null || lid <= 0) {
+                    setHasMoreOlder(false)
+                    setLogs([])
+                    setLoading(false)
+                    return
+                }
+
+                const startFrom = Math.floor(lid / 2)
+
+                const entries = await logBuffer.get(startFrom, pageSize)
+                if (cancelled) return
+                if (entries.length === 0) {
+                    setHasMoreOlder(false)
+                    setLogs([])
+                    setLoading(false)
+                    return
+                }
+
+                let sorted = [...entries].sort((a, b) => a.globalId - b.globalId)
+
+                while (sorted.length < pageSize * INITIAL_PAGES) {
+                    const oldestId = sorted[0].globalId
+                    if (oldestId <= 1) { setHasMoreOlder(false); break }
+                    const next = await logBuffer.get(oldestId - 1, pageSize)
+                    if (cancelled) return
+                    if (next.length === 0) { setHasMoreOlder(false); break }
+                    const newItems = next
+                        .filter(e => e.globalId < oldestId)
+                        .sort((a, b) => a.globalId - b.globalId)
+                    if (newItems.length === 0) { setHasMoreOlder(false); break }
+                    sorted = [...newItems, ...sorted]
+                }
+
+                setLogs(sorted)
+
+                const oldest = sorted[0].globalId
+                const newest = sorted[sorted.length - 1].globalId
+
+                nextOlderIdRef.current = Math.max(0, oldest - 1)
+                nextNewerIdRef.current = newest + 1
+                setHasMoreOlder(oldest > 0)
+                setHasMoreNewer(true)
+                setLoading(false)
+            })()
+
+        return () => { cancelled = true }
+    }, [stringifiedFilters])
+
+    const loadOlder = useCallback(async () => {
+        if (loadingRef.current || !hasMoreOlder) return
+
+        const id = nextOlderIdRef.current
+        if (id == null || id <= 0) {
+            setHasMoreOlder(false)
             return
         }
 
-        const newEntries = await fetchChunk(nextIdRef.current)
-        if (newEntries.length > 0) {
-            setLogs((prev) => [...prev, ...newEntries])
+        const entries = await fetchChunk(id)
+        if (entries.length === 0) {
+            setHasMoreOlder(false)
+            return
         }
-    }, [loading, hasMore, fetchChunk])
 
-    useEffect(() => {
-        let isMounted = true
+        const currentLogs = logsRef.current
+        const oldestKnown = currentLogs.length > 0 ? currentLogs[0].globalId : Infinity
 
-        setLoading(true)
-        setHasMore(true)
-        nextIdRef.current = null
+        const newItems = entries
+            .filter(e => e.globalId < oldestKnown)
+            .sort((a, b) => a.globalId - b.globalId)
 
-        fetchChunk(null).then((firstEntries) => {
-            if (isMounted) {
-                setLogs(firstEntries)
-            }
-        })
-
-        return () => {
-            isMounted = false
+        if (newItems.length === 0) {
+            setHasMoreOlder(false)
+            return
         }
-    }, [fetchChunk])
 
-    return { logs, loading, hasMore, loadMore }
+        setLogs(prev => [...newItems, ...prev])
+        nextOlderIdRef.current = newItems[0].globalId - 1
+        setHasMoreOlder(newItems[0].globalId > 0)
+    }, [fetchChunk, hasMoreOlder])
+
+    const loadNewer = useCallback(async () => {
+        if (loadingRef.current || !hasMoreNewer) return
+
+        const id = nextNewerIdRef.current
+        if (id == null) {
+            setHasMoreNewer(false)
+            return
+        }
+
+        const entries = await fetchChunk(id)
+        if (entries.length === 0) {
+            setHasMoreNewer(false)
+            return
+        }
+
+        const currentLogs = logsRef.current
+        const newestKnown = currentLogs.length > 0
+            ? currentLogs[currentLogs.length - 1].globalId
+            : -1
+
+        const newItems = entries
+            .filter(e => e.globalId > newestKnown)
+            .sort((a, b) => a.globalId - b.globalId)
+
+        if (newItems.length === 0) {
+            setHasMoreNewer(false)
+            return
+        }
+
+        setLogs(prev => [...prev, ...newItems])
+        nextNewerIdRef.current = newItems[newItems.length - 1].globalId + 1
+        setHasMoreNewer(true)
+    }, [fetchChunk, hasMoreNewer])
+
+    const firstItemIndex = logs.length > 0 ? logs[0].globalId : 0
+
+    return { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex }
 }

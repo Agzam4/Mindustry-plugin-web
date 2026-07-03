@@ -101,25 +101,14 @@
 // Feed
 
 .feed {
-    display: flex;
-    flex-direction: column-reverse;
-    overflow-y: auto;
-    overflow-x: hidden;
     background: var(--bg-primary);
-
-    overflow-anchor: none;
+    overflow: hidden;
 }
 
 .sentinel {
-    display: flex;
+    display: none;
     justify-content: center;
     padding: var(--gap-y2);
-
-    overflow-anchor: none;
-}
-
-.anchor {
-    overflow-anchor: auto;
 }
 
 .item {
