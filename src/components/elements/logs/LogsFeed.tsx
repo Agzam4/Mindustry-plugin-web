@@ -57,6 +57,7 @@ export function LogsFeed({
                 firstItemIndex={firstItemIndex}
                 startReached={onLoadOlder}
                 endReached={onLoadNewer}
+                increaseViewportBy={{ top: 400, bottom: 400 }}
                 itemContent={(index, entry) => (
                     <LogsFeedItem
                         entry={entry}

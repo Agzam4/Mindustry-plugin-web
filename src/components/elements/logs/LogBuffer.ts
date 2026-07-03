@@ -118,17 +118,13 @@ export class LogBuffer {
             }
             for (let e = 0; e < chunk.entries.length; e++) {
                 if (limit <= 0) {
-                    if (debug) console.log(">", entries)
                     return entries
                 }
                 if (chunk.entries[e].globalId < id) continue
-                console.log("+", chunk.entries[e].globalId)
                 entries[index++] = chunk.entries[e]
                 limit--;
             }
-            // console.log(entries.map(e => e ? e.globalId : "XXX"))
             if (chunk.entries.length == 0) {
-                if (debug) console.log(">", entries)
                 return entries
             }
         }
