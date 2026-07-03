@@ -40,10 +40,10 @@ export class LogBuffer {
                 entries: (await this.fetch(starId, PAGE_SIZE)).filter(c => c !== null && c !== undefined)
             }
             const c = this.chunks[chunk]
-            c.entries.sort((e1, e2) => e2.globalId - e1.globalId)
+            c.entries.sort((e1, e2) => e1.globalId - e2.globalId)
 
             if (debug) {
-                const ids = c.entries.map(e => e.globalId).reverse()
+                const ids = c.entries.map(e => e.globalId)
                 const min = c.id - c.size + 1
                 const max = c.id
                 console.log(`Fetch chunk [${min},${max}]: ${ids[0]},${ids[ids.length - 1]}`, c.entries.map(e => e.globalId).reverse())
@@ -66,18 +66,50 @@ export class LogBuffer {
         }
     }
 
-    /** Collect entities from given id to 0 */
-    public async get(id: number, limit: number) {
+    /** Collect entities from given id to 0, returns [min -> max] */
+    public async past(id: number, limit: number) {
         if (debug) console.log(`GET <= ${id} (${limit})`)
         const entries: LogEntity[] = []
-        let cid = id
-        let index = 0
+        let cid = id // starting from latest
+        let index = limit - 1 // cursor at end
         let allowedNonfull = 0
         while (true) {
             const chunkId = this.chunkId(cid)
-            // if (debug) console.log(chunkId * PAGE_SIZE)
             const chunk = await this.touchChunk(chunkId)
             cid -= chunk.size
+
+            if (chunk.entries.length !== chunk.size) {
+                if (++allowedNonfull > 1) {
+                    if (debug) console.error("To many non full responces")
+                }
+            }
+            for (let e = chunk.entries.length - 1; e >= 0; e--) {
+                if (limit <= 0) {
+                    if (debug) console.log(">", entries)
+                    return entries
+                }
+                if (chunk.entries[e].globalId > id) continue // cut over
+                entries[index--] = chunk.entries[e]
+                limit--;
+            }
+            if (cid <= 0) {
+                if (debug) console.log(">", entries)
+                return index === -1 ? entries : entries.slice(index + 1)
+            }
+        }
+    }
+
+    /** Collect entities from given id to latest, returns [min -> max] */
+    public async future(id: number, limit: number) {
+        if (debug) console.log(`GET >= ${id} (${limit})`)
+        const entries: LogEntity[] = []
+        let cid = 0 // starting from first
+        let index = 0 // cursor at start
+        let allowedNonfull = 0
+        while (true) {
+            const chunkId = this.chunkId(cid)
+            const chunk = await this.touchChunk(chunkId)
+            cid += chunk.size
 
             if (chunk.entries.length !== chunk.size) {
                 if (++allowedNonfull > 1) {
@@ -87,15 +119,15 @@ export class LogBuffer {
             for (let e = 0; e < chunk.entries.length; e++) {
                 if (limit <= 0) {
                     if (debug) console.log(">", entries)
-
                     return entries
                 }
-                if (chunk.entries[e].globalId > id) continue
+                if (chunk.entries[e].globalId < id) continue
+                console.log("+", chunk.entries[e].globalId)
                 entries[index++] = chunk.entries[e]
                 limit--;
             }
             // console.log(entries.map(e => e ? e.globalId : "XXX"))
-            if (cid <= 0) {
+            if (chunk.entries.length == 0) {
                 if (debug) console.log(">", entries)
                 return entries
             }

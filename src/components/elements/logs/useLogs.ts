@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type { LogEntity } from '@/api/gen/api'
 import { LogBuffer } from './LogBuffer'
 
@@ -33,11 +33,24 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
 
     const stringifiedFilters = JSON.stringify(filters)
 
-    const fetchChunk = useCallback(async (startId: number): Promise<LogEntity[]> => {
+    /**
+     * Return target amout of entries [min -> max]
+     * (only if not end of logs for selected diraction)
+     */
+    const fetchChunk = useCallback(async (
+        startId: RefObject<number | null>,
+        direction: "past" | "future"
+    ): Promise<LogEntity[]> => {
+        if (startId.current === null) return []
         setLoading(true)
         loadingRef.current = true
         try {
-            const entries = await logBuffer.get(startId, pageSize)
+            const entries = await (direction === 'past' ? logBuffer.past(startId.current, pageSize) : logBuffer.future(startId.current, pageSize))
+            if (direction === 'future')
+                console.log(direction, entries)
+            startId.current = direction === 'past' ? entries[0].globalId - 1 : entries[entries.length - 1].globalId + 1
+            if (direction === 'future')
+                console.log("New id:", startId.current)
             return entries
         } catch (error) {
             console.error("Fetch error:", error)
@@ -47,6 +60,28 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
             loadingRef.current = false
         }
     }, [logBuffer, pageSize])
+
+
+    // const fetchChunk = useCallback(async (
+    //     startId: RefObject<number | null>,
+    //     direction: "past" | "future"
+    // ): Promise<LogEntity[]> => {
+    //     if (startId.current == null) return []
+    //
+    //     setLoading(true)
+    //     loadingRef.current = true
+    //     try {
+    //         const entries = await (direction === 'past' ? logBuffer.past(startId.current, pageSize) : logBuffer.future(startId.current, pageSize))
+    //         startId.current = direction === 'past' ? entries[0].globalId : entries[entries.length - 1].globalId
+    //         return entries
+    //     } catch (error) {
+    //         console.error("Fetch error:", error)
+    //         return []
+    //     } finally {
+    //         setLoading(false)
+    //         loadingRef.current = false
+    //     }
+    // }, [logBuffer, pageSize])
 
     useEffect(() => {
         let cancelled = false
@@ -67,9 +102,9 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
                     return
                 }
 
-                const startFrom = Math.floor(lid / 2)
+                const startFrom = Math.floor(lid - 23)
 
-                const entries = await logBuffer.get(startFrom, pageSize)
+                const entries = await logBuffer.past(startFrom, pageSize)
                 if (cancelled) return
                 if (entries.length === 0) {
                     setHasMoreOlder(false)
@@ -83,7 +118,7 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
                 while (sorted.length < pageSize * INITIAL_PAGES) {
                     const oldestId = sorted[0].globalId
                     if (oldestId <= 1) { setHasMoreOlder(false); break }
-                    const next = await logBuffer.get(oldestId - 1, pageSize)
+                    const next = await logBuffer.past(oldestId - 1, pageSize)
                     if (cancelled) return
                     if (next.length === 0) { setHasMoreOlder(false); break }
                     const newItems = next
@@ -111,67 +146,58 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
     const loadOlder = useCallback(async () => {
         if (loadingRef.current || !hasMoreOlder) return
 
-        const id = nextOlderIdRef.current
-        if (id == null || id <= 0) {
-            setHasMoreOlder(false)
-            return
-        }
-
-        const entries = await fetchChunk(id)
+        const entries = await fetchChunk(nextOlderIdRef, 'past')
         if (entries.length === 0) {
             setHasMoreOlder(false)
             return
         }
-
-        const currentLogs = logsRef.current
-        const oldestKnown = currentLogs.length > 0 ? currentLogs[0].globalId : Infinity
-
-        const newItems = entries
-            .filter(e => e.globalId < oldestKnown)
-            .sort((a, b) => a.globalId - b.globalId)
-
-        if (newItems.length === 0) {
+        setLogs(prev => [...entries, ...prev])
+        if (entries.length < pageSize || entries[0].globalId <= 0) {
             setHasMoreOlder(false)
+            console.log("START")
             return
         }
-
-        setLogs(prev => [...newItems, ...prev])
-        nextOlderIdRef.current = newItems[0].globalId - 1
-        setHasMoreOlder(newItems[0].globalId > 0)
     }, [fetchChunk, hasMoreOlder])
 
     const loadNewer = useCallback(async () => {
+        console.log("GET future")
         if (loadingRef.current || !hasMoreNewer) return
 
-        const id = nextNewerIdRef.current
-        if (id == null) {
-            setHasMoreNewer(false)
-            return
-        }
+        // const id = nextNewerIdRef.current
+        // if (id == null) {
+        //     setHasMoreNewer(false)
+        //     return
+        // }
 
-        const entries = await fetchChunk(id)
+        const entries = await fetchChunk(nextNewerIdRef, 'future')
         if (entries.length === 0) {
             setHasMoreNewer(false)
             return
         }
 
-        const currentLogs = logsRef.current
-        const newestKnown = currentLogs.length > 0
-            ? currentLogs[currentLogs.length - 1].globalId
-            : -1
-
-        const newItems = entries
-            .filter(e => e.globalId > newestKnown)
-            .sort((a, b) => a.globalId - b.globalId)
-
-        if (newItems.length === 0) {
+        setLogs(prev => [...prev, ...entries])
+        if (entries.length < pageSize || entries[0].globalId <= 0) {
             setHasMoreNewer(false)
+            console.log("END")
             return
         }
+        // const currentLogs = logsRef.current
+        // const newestKnown = currentLogs.length > 0
+        //     ? currentLogs[currentLogs.length - 1].globalId
+        //     : -1
+        //
+        // const newItems = entries
+        //     .filter(e => e.globalId > newestKnown)
+        //     .sort((a, b) => a.globalId - b.globalId)
+        //
+        // if (newItems.length === 0) {
+        //     setHasMoreNewer(false)
+        //     return
+        // }
 
-        setLogs(prev => [...prev, ...newItems])
-        nextNewerIdRef.current = newItems[newItems.length - 1].globalId + 1
-        setHasMoreNewer(true)
+        // setLogs(prev => [...prev, ...newItems])
+        // nextNewerIdRef.current = newItems[newItems.length - 1].globalId + 1
+        // setHasMoreNewer(true)
     }, [fetchChunk, hasMoreNewer])
 
     const firstItemIndex = logs.length > 0 ? logs[0].globalId : 0
