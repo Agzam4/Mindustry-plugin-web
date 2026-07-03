@@ -17,7 +17,7 @@ interface Props {
     filters: Filters
 }
 
-const INITIAL_PAGES = 5
+const INITIAL_PAGES = 1
 
 export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
     // Timelime A -[a, b]-> B
@@ -91,7 +91,7 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
                 }
 
                 console.log("Latest log:", lid)
-                const startFrom = Math.floor(lid - 23)
+                const startFrom = Math.floor(lid)
 
                 const entries = await logBuffer.past(startFrom, pageSize)
                 if (cancelled) return
@@ -102,25 +102,10 @@ export function useLogs({ logBuffer, apiLogs, pageSize = 10, filters }: Props) {
                     return
                 }
 
-                let sorted = [...entries].sort((a, b) => a.globalId - b.globalId)
+                setLogs(entries)
 
-                while (sorted.length < pageSize * INITIAL_PAGES) {
-                    const oldestId = sorted[0].globalId
-                    if (oldestId <= 1) { setHasMoreOlder(false); break }
-                    const next = await logBuffer.past(oldestId - 1, pageSize)
-                    if (cancelled) return
-                    if (next.length === 0) { setHasMoreOlder(false); break }
-                    const newItems = next
-                        .filter(e => e.globalId < oldestId)
-                        .sort((a, b) => a.globalId - b.globalId)
-                    if (newItems.length === 0) { setHasMoreOlder(false); break }
-                    sorted = [...newItems, ...sorted]
-                }
-
-                setLogs(sorted)
-
-                const oldest = sorted[0].globalId
-                const newest = sorted[sorted.length - 1].globalId
+                const oldest = entries[0].globalId
+                const newest = entries[entries.length - 1].globalId
 
                 pastIndexRef.current = Math.max(0, oldest - 1)
                 futureIndexRef.current = newest + 1

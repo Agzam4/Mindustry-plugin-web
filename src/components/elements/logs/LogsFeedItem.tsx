@@ -50,9 +50,10 @@ export const LogsFeedItem = memo(function LogsFeedItem({ entry, selected, onClic
             tabIndex={0}
             onKeyDown={e => { if (e.key === 'Enter') onClick(entry) }}
         >
-            <span className={style.itemTime}>{entry.globalId} {formatTime(entry.timestamp)}</span>
+            <span className={style.itemTime}>{formatTime(entry.timestamp)}</span>
             <span className={style.itemDot} />
             <span className={style.itemSummary}><Text>{renderSummary(entry)}</Text></span>
+            <span className={style.itemTime}>#{entry.globalId}</span>
         </div>
     )
 })
