@@ -1,9 +1,7 @@
 import type { LogEntity } from '@/api/gen/api'
 
 export interface LogFilters {
-    tags: number[]
-    query: string
-    t1: number
+    tags: number[] // list of allwed tags, empty to all
 }
 
 export const TAG_NAMES: Record<number, string> = {

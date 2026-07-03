@@ -1,4 +1,5 @@
 import { Api, type LogEntity } from '@/api/gen/api'
+import type { LogFilters } from './types'
 
 interface Chunk {
     id: number // maximum id
@@ -7,6 +8,7 @@ interface Chunk {
     lastUsed: number
 }
 
+export type ClientFilter = (e: LogEntity) => boolean
 export type FetchFn = (fromId: number, limit: number) => Promise<LogEntity[]>
 
 const PAGE_SIZE = 10
@@ -17,8 +19,15 @@ export class LogBuffer {
 
     private chunks: Chunk[] = []
     private seq = 0
+    private filter: ClientFilter = () => true
 
-    constructor() { }
+
+    constructor(filters?: LogFilters) {
+        if (filters) {
+            if (filters.tags.length > 0) this.filter = e => filters.tags.includes(e.tag)
+            console.log("Filters: ", filters.tags)
+        }
+    }
 
     private async fetch(fromId: number, limit: number) {
         const [data] = await Api.logs.search({
@@ -97,6 +106,7 @@ export class LogBuffer {
                     return entries
                 }
                 if (chunk.entries[e].globalId > id) continue // cut over
+                if (!this.filter(chunk.entries[e])) continue
                 entries[index--] = chunk.entries[e]
                 limit--;
             }
@@ -129,6 +139,7 @@ export class LogBuffer {
                     return entries
                 }
                 if (chunk.entries[e].globalId < id) continue
+                if (!this.filter(chunk.entries[e])) continue
                 entries[index++] = chunk.entries[e]
                 limit--;
             }

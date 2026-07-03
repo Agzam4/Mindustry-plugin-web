@@ -1,25 +1,20 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { Api, type LogEntity } from '@/api/gen/api'
 import { LogBuffer } from './LogBuffer'
-
-export interface Filters {
-    // TODO: add filters
-}
+import type { LogFilters } from './types'
 
 interface Props {
     initId: number | null
     pageSize?: number
-    filters: Filters
+    filters: LogFilters
 }
 
 const INITIAL_PAGES = 1
 
 export function useLogs({ initId, pageSize = 10, filters }: Props) {
-
+    const stringifiedFilters = JSON.stringify(filters)
+    const lastFiltersRef = useRef(stringifiedFilters)
     const bufferRef = useRef<LogBuffer>(null!)
-    if (!bufferRef.current) {
-        bufferRef.current = new LogBuffer()
-    }
 
     // Timelime A -[a, b]-> B
     const [logs, setLogs] = useState<LogEntity[]>([])
@@ -38,7 +33,16 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
     const logsRef = useRef<LogEntity[]>(logs)
     logsRef.current = logs
 
-    const stringifiedFilters = JSON.stringify(filters)
+    if (!bufferRef.current || lastFiltersRef.current !== stringifiedFilters) {
+        bufferRef.current = new LogBuffer(filters)
+        lastFiltersRef.current = stringifiedFilters
+
+        loadingRef.current = false
+        pastDelayedRef.current = false
+        futureDelayedRef.current = false
+        pastIndexRef.current = null
+        futureIndexRef.current = null
+    }
 
     /**
      * Return target amout of entries [min -> max]
@@ -53,12 +57,14 @@ export function useLogs({ initId, pageSize = 10, filters }: Props) {
         loadingRef.current = true
         try {
             const entries = await (direction === 'past' ? bufferRef.current.past(startId.current, pageSize) : bufferRef.current.future(startId.current, pageSize));
+            console.log(entries.map(e => e.globalId))
             if (entries.length == 0) {
                 startId.current = direction === 'past' ? 0 : startId.current + 1
                 return entries
             }
 
             startId.current = direction === 'past' ? entries[0].globalId - 1 : entries[entries.length - 1].globalId + 1
+            console.log(startId.current)
             return entries
         } catch (error) {
             console.error("Fetch error:", error)

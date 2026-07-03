@@ -4,14 +4,16 @@ import type { LogEntity } from '@/api/gen/api'
 import { LogsFeedItem } from './LogsFeedItem'
 import style from './Logs.module.scss'
 import { useLogs } from './useLogs'
+import type { LogFilters } from './types'
 
 interface Props {
-    selectedId: number | null
-    onSelect: (entry: LogEntity) => void
+    selectedId?: number | null
+    filters?: LogFilters
+    onSelect?: (entry: LogEntity) => void
 }
 
-export function LogsFeed({ selectedId, onSelect }: Props) {
-    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters: {} })
+export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [] } }: Props) {
+    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters })
 
     const virtuosoRef = useRef<VirtuosoHandle>(null)
     const initialScrolled = useRef(false)
