@@ -44,7 +44,7 @@ const COLORS: Record<string, string> = {
 };
 
 interface MarkupTextProps {
-    children: string;
+    children: any | any[];
 }
 
 interface TextSegment {
@@ -58,7 +58,8 @@ export default function Text({ children }: MarkupTextProps) {
         const colorStack: string[] = ['inherit'];
 
         let i = 0;
-        const len = children.length;
+        const string = Array.isArray(children) ? children.join("") : `${children}`
+        const len = string.length;
 
         const appendChar = (char: string) => {
             const currentColor = colorStack[colorStack.length - 1];
@@ -71,18 +72,18 @@ export default function Text({ children }: MarkupTextProps) {
         };
 
         while (i < len) {
-            if (children[i] === '[') {
+            if (string[i] === '[') {
                 const start = i + 1;
                 if (start === len) {
                     appendChar('[');
                     break;
                 }
-                if (children[start] === '[') {
+                if (string[start] === '[') {
                     appendChar('[');
                     i += 2;
                     continue;
                 }
-                if (children[start] === ']') {
+                if (string[start] === ']') {
                     if (colorStack.length > 1) {
                         colorStack.pop();
                     }
@@ -90,14 +91,14 @@ export default function Text({ children }: MarkupTextProps) {
                     continue;
                 }
 
-                const closeIndex = children.indexOf(']', start);
+                const closeIndex = string.indexOf(']', start);
                 if (closeIndex === -1) {
                     appendChar('[');
                     i++;
                     continue;
                 }
 
-                const tagContent = children.substring(start, closeIndex);
+                const tagContent = string.substring(start, closeIndex);
 
                 if (tagContent.startsWith('#')) {
                     const hex = tagContent.substring(1);
@@ -130,7 +131,7 @@ export default function Text({ children }: MarkupTextProps) {
                 continue;
             }
 
-            appendChar(children[i]);
+            appendChar(string[i]);
             i++;
         }
 
@@ -140,7 +141,7 @@ export default function Text({ children }: MarkupTextProps) {
     return (
         <>
             {segments.map((seg, idx) => (
-                <span key={idx} style={{ color: seg.color }}>
+                <span key={idx} style={{ color: seg.color, whiteSpace: 'break-spaces' }}>
                     {seg.text}
                 </span>
             ))}

@@ -1,8 +1,9 @@
 import { memo } from 'react'
-import type { LogEntity } from '@/api/gen/api'
+import type { AdminCommandLogEvent, ChatMessageLogEvent, GameBeginLogEvent, GameOverLogEvent, KickLogEvent, LogEntity, PlayerCommandLogEvent, PlayerJoinLogEvent, PlayerLeaveLogEvent, ServerStartLogEvent, VotekickLogEvent } from '@/api/gen/api'
 import { TAG_NAMES, formatUuid } from './types'
 import style from './Logs.module.scss'
 import Text from '@/components/ui/Text'
+import Player from '@/components/ui/Player'
 
 interface Props {
     entry: LogEntity
@@ -18,25 +19,44 @@ function formatTime(ts: number): string {
     return `${hh}:${mm}:${ss}`
 }
 
-function renderSummary(entry: LogEntity): string {
-    const data = tryParse(entry.message)
-    switch (entry.tag) {
-        case 0: return 'Server started'
-        case 1: return `${formatUuid(String(data.player ?? ''))}: ${String(data.message ?? '')}`
-        case 2: return `${formatUuid(String(data.player ?? ''))} /${String(data.command ?? '')}`
-        case 3: return `${formatUuid(String(data.player ?? ''))} /${String(data.command ?? '')}`
-        case 4: return `${formatUuid(String(data.actor ?? ''))} kicked ${formatUuid(String(data.target ?? ''))}`
-        case 5: return `${formatUuid(String(data.actor ?? ''))} votekicked ${formatUuid(String(data.target ?? ''))}`
-        case 6: return `${formatUuid(String(data.player ?? ''))} left [gray](${String(data.players ?? '?')} players)`
-        case 7: return `${formatUuid(String(data.player ?? ''))} joined [gray](${String(data.players ?? '?')} players)`
-        case 8: return `Game over: [accent]${String(data.map ?? '?')}[] wave [accent]${String(data.wave ?? '?')}[]`
-        case 9: return `Game begin: [accent]${String(data.map ?? '?')}`
-        default: return entry.message
-    }
+interface TagPayloadMap {
+    0: ServerStartLogEvent
+    1: ChatMessageLogEvent
+    2: PlayerCommandLogEvent
+    3: AdminCommandLogEvent
+    4: KickLogEvent
+    5: VotekickLogEvent
+    6: PlayerLeaveLogEvent
+    7: PlayerJoinLogEvent
+    8: GameOverLogEvent
+    9: GameBeginLogEvent
 }
 
-function tryParse(message: string): Record<string, unknown> {
-    try { return JSON.parse(message) } catch { return { raw: message } }
+type RendersMap = {
+    [K in keyof TagPayloadMap]: (e: TagPayloadMap[K]) => any;
+};
+
+const renders: RendersMap = {
+    0: _e => <>Server started</>,
+    1: e => <><Player id={e.player} /><Text>: {e.message}</Text></>,
+    2: e => <><Player id={e.player} /><Text>: /{e.command}</Text></>,
+    3: e => <><Player id={e.player} /><Text>: /{e.command}</Text></>,
+    4: e => <><Player id={e.actor} /><Text> kicked </Text><Player id={e.target} /><Text>: [accent]{e.reason}[] on [accent]{(e.seconds / 60) + ''}[] minutes</Text></>,
+    5: e => <><Player id={e.actor} /><Text> votekicked </Text><Player id={e.target} /><Text>: [accent]{e.reason}[]</Text></>,
+    6: e => <><Player id={e.player} /><Text> left [gray]({e.players + ""} players)</Text></>,
+    7: e => <><Player id={e.player} /><Text> joined [gray]({e.players + ""} players)</Text></>,
+    8: e => <Text>Game over: [accent]{e.map}[] wave [accent]{e.wave}</Text>,
+    9: e => <Text>Game begin: [accent]{e.map}</Text>,
+}
+
+function renderLog(log: LogEntity) {
+    if (!(log.tag in renders)) {
+        return `Unknown tag: ${log.tag}`;
+    }
+    const tag = log.tag as keyof TagPayloadMap;
+    const payload = JSON.parse(log.message) as TagPayloadMap[typeof tag];
+    const renderFn = renders[tag] as (data: typeof payload) => any;
+    return renderFn(payload);
 }
 
 export const LogsFeedItem = memo(function LogsFeedItem({ entry, selected, onClick }: Props) {
@@ -52,7 +72,7 @@ export const LogsFeedItem = memo(function LogsFeedItem({ entry, selected, onClic
         >
             <span className={style.itemTime}>{formatTime(entry.timestamp)}</span>
             <span className={style.itemDot} />
-            <span className={style.itemSummary}><Text>{renderSummary(entry)}</Text></span>
+            <span className={style.itemSummary}>{renderLog(entry)}</span>
             <span className={style.itemTime}>#{entry.globalId}</span>
         </div>
     )
