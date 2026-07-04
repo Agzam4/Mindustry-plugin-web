@@ -11,7 +11,7 @@ interface Chunk {
 export type ClientFilter = (e: LogEntity) => boolean
 export type FetchFn = (fromId: number, limit: number) => Promise<LogEntity[]>
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 100
 const MAX_CHUNKS = 10
 const debug = !true
 

@@ -17,7 +17,7 @@ export default function LogsPage() {
         <div className={style.panels}>
             <LogsFilters filters={filters} onChange={setFilters} />
             <main className={style.centerPanel}>
-                <LogsFeedMemo selectedId={selected === null ? null : selected.id} onSelect={setSelected} />
+                <LogsFeedMemo selectedId={selected === null ? null : selected.id} onSelect={setSelected} pageSize={50} />
             </main>
             <aside className={style.rightPanel}>
                 {filters.tags.length == 0 ? <LogsDetails entry={selected} /> : <LogsFeed filters={filters} />}

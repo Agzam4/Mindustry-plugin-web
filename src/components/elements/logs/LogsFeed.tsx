@@ -9,13 +9,14 @@ import type { LogFilters } from './types'
 interface Props {
     selectedId?: number | null
     filters?: LogFilters
+    pageSize?: number
     onSelect?: (entry: LogEntity) => void
 }
 
-export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [] } }: Props) {
+export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [] }, pageSize }: Props) {
     const [selectedRow, setSelectedRow] = useState<number | null>(null)
 
-    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters })
+    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters, pageSize })
 
     const virtuosoRef = useRef<VirtuosoHandle>(null)
     const initialScrolled = useRef(false)
