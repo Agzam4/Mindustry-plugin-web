@@ -38,9 +38,9 @@ type RendersMap = {
 
 const renders: RendersMap = {
     0: _e => <>Server started</>,
-    1: e => <><Player id={e.player} /><Text>: {e.message}</Text></>,
+    1: e => <><Player id={e.player} /><Text>[gray]:[] {e.message}</Text></>,
     2: e => <><Player id={e.player} /><Text>: /{e.command}</Text></>,
-    3: e => <><Player id={e.player} /><Text>: /{e.command}</Text></>,
+    3: e => <><Player id={e.player} /><Text>[gray]:[] /{e.command}</Text></>,
     4: e => <><Player id={e.actor} /><Text> kicked </Text><Player id={e.target} /><Text>: [accent]{e.reason}[] on [accent]{(e.seconds / 60) + ''}[] minutes</Text></>,
     5: e => <><Player id={e.actor} /><Text> votekicked </Text><Player id={e.target} /><Text>: [accent]{e.reason}[]</Text></>,
     6: e => <><Player id={e.player} /><Text> left [gray]({e.players + ""} players)</Text></>,

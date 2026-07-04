@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import React from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 const COLORS: Record<string, string> = {
     clear: "#00000000",
@@ -6,6 +7,7 @@ const COLORS: Record<string, string> = {
     white: "#FFFFFFFF",
     lightgray: "#BFBFBFFF",
     gray: "#7F7F7FFF",
+    grey: "#7F7F7FFF",
     darkgray: "#3F3F3FFF",
     blue: "#0000FFFF",
     navy: "#00007FFF",
@@ -44,107 +46,114 @@ const COLORS: Record<string, string> = {
 };
 
 interface MarkupTextProps {
-    children: any | any[];
+    children: ReactNode;
 }
 
-interface TextSegment {
-    text: string;
-    color: string;
-}
+type RenderableSegment =
+    | { type: 'text'; text: string; color: string }
+    | { type: 'component'; node: ReactNode; color: string; key: string | number };
 
 export default function Text({ children }: MarkupTextProps) {
     const segments = useMemo(() => {
-        const result: TextSegment[] = [];
+        const result: RenderableSegment[] = [];
         const colorStack: string[] = ['inherit'];
-
-        let i = 0;
-        const string = Array.isArray(children) ? children.join("") : `${children}`
-        const len = string.length;
+        const childrenArray = React.Children.toArray(children);
 
         const appendChar = (char: string) => {
             const currentColor = colorStack[colorStack.length - 1];
             const lastSegment = result[result.length - 1];
-            if (lastSegment && lastSegment.color === currentColor) {
+
+            if (lastSegment && lastSegment.type === 'text' && lastSegment.color === currentColor) {
                 lastSegment.text += char;
             } else {
-                result.push({ text: char, color: currentColor });
+                result.push({ type: 'text', text: char, color: currentColor });
             }
         };
 
-        while (i < len) {
-            if (string[i] === '[') {
-                const start = i + 1;
-                if (start === len) {
-                    appendChar('[');
-                    break;
-                }
-                if (string[start] === '[') {
-                    appendChar('[');
-                    i += 2;
-                    continue;
-                }
-                if (string[start] === ']') {
-                    if (colorStack.length > 1) {
-                        colorStack.pop();
-                    }
-                    i += 2;
-                    continue;
-                }
+        childrenArray.forEach((child, childIdx) => {
+            if (typeof child === 'string' || typeof child === 'number') {
+                const string = String(child);
+                const len = string.length;
+                let i = 0;
 
-                const closeIndex = string.indexOf(']', start);
-                if (closeIndex === -1) {
-                    appendChar('[');
-                    i++;
-                    continue;
-                }
-
-                const tagContent = string.substring(start, closeIndex);
-
-                if (tagContent.startsWith('#')) {
-                    const hex = tagContent.substring(1);
-                    if (/^[0-9a-fA-F]{6}$/.test(hex) || /^[0-9a-fA-F]{8}$/.test(hex)) {
-                        let cssColor = `#${hex.substring(0, 6)}`;
-
-                        if (hex.length === 8) {
-                            const r = parseInt(hex.substring(0, 2), 16);
-                            const g = parseInt(hex.substring(2, 4), 16);
-                            const b = parseInt(hex.substring(4, 6), 16);
-                            const a = parseInt(hex.substring(6, 8), 16) / 255;
-                            cssColor = `rgba(${r}, ${g}, ${b}, ${a})`;
+                while (i < len) {
+                    if (string[i] === '[') {
+                        const start = i + 1;
+                        if (start === len) { appendChar('['); break; }
+                        if (string[start] === '[') { appendChar('['); i += 2; continue; }
+                        if (string[start] === ']') {
+                            if (colorStack.length > 1) colorStack.pop();
+                            i += 2;
+                            continue;
                         }
 
-                        colorStack.push(cssColor);
-                        i = closeIndex + 1;
+                        const closeIndex = string.indexOf(']', start);
+                        if (closeIndex === -1) { appendChar('['); i++; continue; }
+
+                        const tagContent = string.substring(start, closeIndex);
+
+                        if (tagContent.startsWith('#')) {
+                            const hex = tagContent.substring(1);
+                            if (/^[0-9a-fA-F]{6}$/.test(hex) || /^[0-9a-fA-F]{8}$/.test(hex)) {
+                                let cssColor = `#${hex.substring(0, 6)}`;
+                                if (hex.length === 8) {
+                                    const r = parseInt(hex.substring(0, 2), 16);
+                                    const g = parseInt(hex.substring(2, 4), 16);
+                                    const b = parseInt(hex.substring(4, 6), 16);
+                                    const a = parseInt(hex.substring(6, 8), 16) / 255;
+                                    cssColor = `rgba(${r}, ${g}, ${b}, ${a})`;
+                                }
+                                colorStack.push(cssColor);
+                                i = closeIndex + 1;
+                                continue;
+                            }
+                        } else {
+                            const lowerName = tagContent.toLowerCase();
+                            if (COLORS[lowerName]) {
+                                colorStack.push(COLORS[lowerName]);
+                                i = closeIndex + 1;
+                                continue;
+                            }
+                        }
+
+                        appendChar('[');
+                        i++;
                         continue;
                     }
-                } else {
-                    const lowerName = tagContent.toLowerCase();
-                    if (COLORS[lowerName]) {
-                        colorStack.push(COLORS[lowerName]);
-                        i = closeIndex + 1;
-                        continue;
-                    }
+
+                    appendChar(string[i]);
+                    i++;
                 }
-
-                appendChar('[');
-                i++;
-                continue;
+            } else {
+                const currentColor = colorStack[colorStack.length - 1];
+                result.push({
+                    type: 'component',
+                    node: child,
+                    color: currentColor,
+                    key: `comp-${childIdx}`
+                });
             }
-
-            appendChar(string[i]);
-            i++;
-        }
+        });
 
         return result;
     }, [children]);
 
     return (
         <>
-            {segments.map((seg, idx) => (
-                <span key={idx} style={{ color: seg.color, whiteSpace: 'break-spaces' }}>
-                    {seg.text}
-                </span>
-            ))}
+            {segments.map((seg, idx) => {
+                if (seg.type === 'text') {
+                    return (
+                        <span key={idx} style={{ color: seg.color, whiteSpace: 'break-spaces' }}>
+                            {seg.text}
+                        </span>
+                    );
+                }
+                return (
+                    <span key={seg.key} style={{ color: seg.color }}>
+                        {seg.node}
+                    </span>
+                );
+            })}
         </>
     );
 };

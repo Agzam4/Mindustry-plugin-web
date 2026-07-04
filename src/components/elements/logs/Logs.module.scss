@@ -207,10 +207,11 @@
 }
 
 .itemSummary {
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    // display: flex;
+    display: block;
+    // align-items: flex-start;
+    // overflow: hidden;
+    // text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--text-bright);
 }
