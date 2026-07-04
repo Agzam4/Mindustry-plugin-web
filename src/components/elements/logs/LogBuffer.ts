@@ -20,10 +20,12 @@ export class LogBuffer {
     private chunks: Chunk[] = []
     private seq = 0
     private filter: ClientFilter = () => true
+    private filters: LogFilters = { tags: [] }
 
 
     constructor(filters?: LogFilters) {
         if (filters) {
+            this.filters = filters
             if (filters.tags.length > 0) this.filter = e => filters.tags.includes(e.tag)
             console.log("Filters: ", filters.tags)
         }
@@ -34,7 +36,7 @@ export class LogBuffer {
             id: fromId,
             limit,
             t1: 0, t2: 999999999999999,
-            tags: [],
+            tags: this.filters.tags,
             query: "",
         })
         return data ?? []
