@@ -3,7 +3,7 @@ import type { AdminCommandLogEvent, ChatMessageLogEvent, GameBeginLogEvent, Game
 import { TAG_NAMES, formatUuid } from './types'
 import style from './Logs.module.scss'
 import Text from '@/components/ui/Text'
-import Player from '@/components/ui/Player'
+import Player from '@/components/ui/players/Player'
 
 interface Props {
     entry: LogEntity
@@ -70,7 +70,7 @@ export const LogsFeedItem = memo(function LogsFeedItem({ entry, selected, onClic
             tabIndex={0}
             onKeyDown={e => { if (e.key === 'Enter') onClick(entry) }}
         >
-            <span className={style.itemTime}>{formatTime(entry.timestamp)}</span>
+            <span title={new Date(entry.timestamp).toLocaleString()} className={style.itemTime}>{formatTime(entry.timestamp)}</span>
             <span className={style.itemDot} />
             <span className={style.itemSummary}>{renderLog(entry)}</span>
             <span className={style.itemTime}>#{entry.globalId}</span>

@@ -1,0 +1,80 @@
+.contextContent {
+    min-width: 190px;
+    color: var(--text-bright);
+    background-color: var(--bg-secondary);
+    border: var(--border);
+    border-radius: 4px;
+    // padding: var(--border-radius) 0;
+    z-index: 1000;
+    animation: scaleIn 100ms ease-out;
+    box-shadow: 0 0 1em #000000aa;
+}
+
+.contextHeader {
+    // padding: 6px 12px;
+    display: flex;
+    flex-direction: column;
+    // font-size: 13px;
+}
+
+.contextSub {
+    font-size: 11px;
+    color: #71717a;
+    font-family: monospace;
+    margin-top: 2px;
+}
+
+.contextSeparator {
+    height: 0px;
+    border-bottom: var(--border);
+}
+
+.contextItem {
+    display: flex;
+    align-items: center;
+    font: inherit;
+    line-height: 1.75;
+    position: relative;
+    user-select: none;
+    outline: none;
+    cursor: auto;
+    padding: 0 .5rem;
+}
+
+
+.clickable {
+    cursor: pointer;
+    color: var(--text);
+    background: var(--bg-primary);
+}
+
+.clickable[data-highlighted] {
+    background-color: var(--bg-accent);
+    color: var(--text-bright);
+}
+
+.contextIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.contextLabel {
+    padding: 0 .5rem;
+    flex: 1;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

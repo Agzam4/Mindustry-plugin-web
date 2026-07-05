@@ -1,5 +1,6 @@
 import type { LogEntity } from '@/api/gen/api'
 import { TAG_LABELS, formatUuid, parseMessage } from './types'
+import Text from '@/components/ui/Text'
 import style from './Logs.module.scss'
 
 interface Props {
@@ -15,7 +16,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
     return (
         <div className={style.detailRow}>
             <span className={style.detailLabel}>{label}</span>
-            <span className={style.detailValue}>{value}</span>
+            <span className={style.detailValue}><Text>{value}</Text></span>
         </div>
     )
 }
