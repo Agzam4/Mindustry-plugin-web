@@ -35,11 +35,7 @@ class PlayerFetcher {
             if (idsToFetch.length === 0) return;
 
             try {
-                const [data, err] = await Api.info.resolvePlayer({
-                    sessionId: "",
-                    ip: "",
-                    ids: idsToFetch
-                });
+                const [data, err] = await Api.info.resolvePlayer({ ids: idsToFetch });
 
                 if (err || !data) throw new Error(err?.message);
 
