@@ -1,7 +1,32 @@
-import type { LogEntity } from '@/api/gen/api'
+import type { AdminCommandLogEvent, ChatMessageLogEvent, GameBeginLogEvent, GameOverLogEvent, KickLogEvent, LogEntity, PlayerCommandLogEvent, PlayerJoinLogEvent, PlayerLeaveLogEvent, ServerStartLogEvent, VotekickLogEvent } from '@/api/gen/api'
+
+export type LogTagPredicate = (e: LogEntity) => boolean
+export type LogTagPredicateMap = Map<string, LogTagPredicate>
+export type LogTagFilters = Map<number, LogTagPredicateMap>
 
 export interface LogFilters {
     tags: number[] // list of allwed tags, empty to all
+    tagFilters: LogTagFilters
+    applyedTagFilters: Record<string, any>
+}
+
+
+export function logsFilterKey(f: LogFilters) {
+    return `${f.tags.join(',')}-${JSON.stringify(f.applyedTagFilters)}`
+}
+
+
+export interface TagTypeMap {
+    0: ServerStartLogEvent
+    1: ChatMessageLogEvent
+    2: PlayerCommandLogEvent
+    3: AdminCommandLogEvent
+    4: KickLogEvent
+    5: VotekickLogEvent
+    6: PlayerLeaveLogEvent
+    7: PlayerJoinLogEvent
+    8: GameOverLogEvent
+    9: GameBeginLogEvent
 }
 
 export const TAG_NAMES: Record<number, string> = {

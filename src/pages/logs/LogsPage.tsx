@@ -4,23 +4,25 @@ import { LogsFilters } from '@/components/elements/logs/LogsFilters'
 import { LogsFeed } from '@/components/elements/logs/LogsFeed'
 import { LogsDetails } from '@/components/elements/logs/LogsDetails'
 import style from '@/components/elements/logs/Logs.module.scss'
-import type { LogFilters } from '@/components/elements/logs/types'
+import { useLogFilterStore } from '@/components/elements/logs/useFiltersStore'
+import { logsFilterKey } from '@/components/elements/logs/types'
 
 const LogsFeedMemo = memo(LogsFeed)
 
 export default function LogsPage() {
     const [selected, setSelected] = useState<LogEntity | null>(null)
 
-    const [filters, setFilters] = useState<LogFilters>({ tags: [] })
+    const filters = useLogFilterStore((state) => state.filters);
+    console.log("Repage", logsFilterKey(filters))
 
     return (
         <div className={style.panels}>
-            <LogsFilters filters={filters} onChange={setFilters} />
+            <LogsFilters />
             <main className={style.centerPanel}>
                 <LogsFeedMemo selectedId={selected === null ? null : selected.id} onSelect={setSelected} pageSize={50} />
             </main>
             <aside className={style.rightPanel}>
-                {filters.tags.length == 0 ? <LogsDetails entry={selected} /> : <LogsFeed filters={filters} />}
+                {filters.tags.length == 0 && filters.tagFilters.size == 0 ? <LogsDetails entry={selected} /> : <LogsFeed filters={filters} />}
             </aside>
         </div>
     )

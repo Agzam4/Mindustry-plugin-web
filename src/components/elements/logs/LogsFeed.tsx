@@ -4,7 +4,7 @@ import type { LogEntity } from '@/api/gen/api'
 import { LogsFeedItem } from './LogsFeedItem'
 import style from './Logs.module.scss'
 import { useLogs } from './useLogs'
-import type { LogFilters } from './types'
+import { logsFilterKey, type LogFilters } from './types'
 
 interface Props {
     selectedId?: number | null
@@ -13,7 +13,7 @@ interface Props {
     onSelect?: (entry: LogEntity) => void
 }
 
-export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [] }, pageSize }: Props) {
+export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [], tagFilters: new Map(), applyedTagFilters: {} }, pageSize }: Props) {
     const [selectedRow, setSelectedRow] = useState<number | null>(null)
 
     const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters, pageSize })
@@ -23,7 +23,8 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
 
     useEffect(() => {
         initialScrolled.current = false
-    }, [JSON.stringify(filters)])
+        console.log("Refresh")
+    }, [logsFilterKey(filters)])
 
     useEffect(() => {
         if (logs.length > 0 && !initialScrolled.current && !loading) {

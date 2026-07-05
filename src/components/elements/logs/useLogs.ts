@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { Api, type LogEntity } from '@/api/gen/api'
 import { LogBuffer } from './LogBuffer'
-import type { LogFilters } from './types'
+import { logsFilterKey, type LogFilters } from './types'
 
 interface Props {
     initId: number | null
@@ -12,7 +12,7 @@ interface Props {
 const INITIAL_PAGES = 1
 
 export function useLogs({ initId, pageSize = 25, filters }: Props) {
-    const stringifiedFilters = JSON.stringify(filters)
+    const stringifiedFilters = logsFilterKey(filters)
     const lastFiltersRef = useRef(stringifiedFilters)
     const bufferRef = useRef<LogBuffer>(null!)
     const firstItemIndexRef = useRef<number | null>(null)

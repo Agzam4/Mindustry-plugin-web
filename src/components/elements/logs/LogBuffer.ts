@@ -1,5 +1,5 @@
 import { Api, type LogEntity } from '@/api/gen/api'
-import type { LogFilters } from './types'
+import { logsFilterKey, type LogFilters } from './types'
 
 interface Chunk {
     id: number // maximum id
@@ -20,14 +20,36 @@ export class LogBuffer {
     private chunks: Chunk[] = []
     private seq = 0
     private filter: ClientFilter = () => true
-    private filters: LogFilters = { tags: [] }
+    private filters: LogFilters = { tags: [], tagFilters: new Map(), applyedTagFilters: {} }
 
 
     constructor(filters?: LogFilters) {
+        console.log("Log buffer with", filters && logsFilterKey(filters))
         if (filters) {
             this.filters = filters
-            if (filters.tags.length > 0) this.filter = e => filters.tags.includes(e.tag)
-            console.log("Filters: ", filters.tags)
+
+            const collected: ClientFilter[][] = []
+            for (const [tag, map] of filters.tagFilters.entries()) {
+                collected[tag] = []
+                map.forEach(p => collected[tag].push(p))
+            }
+            console.log(collected, filters)
+
+            this.filter = e => {
+                if (filters.tags.length > 0 && !filters.tags.includes(e.tag)) return false
+                const event = JSON.parse(e.message)
+                if (e.tag in collected) {
+                    for (const filter of collected[e.tag]) {
+                        if (!filter(event)) return false
+                    }
+                }
+                return true
+            }
+            // if (filters.tags.length > 0) this.filter = e => {
+            //     if (!filters.tags.includes(e.tag)) return false
+            //
+            // }
+            // console.log("Filters: ", filters.tags)
         }
     }
 

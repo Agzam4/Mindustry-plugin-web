@@ -4,9 +4,12 @@ import Text from '@/components/ui/Text'
 import { useEffect, useState } from 'react';
 import style from './Player.module.scss'
 import ContextMenuWrapper, { type ContextMenuItem } from '../context/ContextMenuWrapper';
+import { useLogFilterStore } from '@/components/elements/logs/useFiltersStore';
 
 export default function Player({ id }: { id: number }) {
     const [info, setInfo] = useState<ResolvedPlayerInfo | null>(null);
+
+    const applySplashFilter = useLogFilterStore((state) => state.applySplashFilter);
 
     useEffect(() => {
         let isMounted = true;
@@ -27,6 +30,12 @@ export default function Player({ id }: { id: number }) {
             isSeparator: true
         },
         {
+            key: "search",
+            label: `search`,
+            action: () => applySplashFilter("player", id, true),
+            isSeparator: true
+        },
+        {
             key: 'copy-id',
             label: 'copy id',
             action: () => navigator.clipboard.writeText(id + ''),
@@ -34,19 +43,19 @@ export default function Player({ id }: { id: number }) {
         info?.name !== null && {
             key: 'copy-name',
             label: 'copy name',
-            action: () => info?.uuid && navigator.clipboard.writeText(info.uuid),
+            action: () => info?.name && navigator.clipboard.writeText(info.name),
         },
         info?.uuid !== null && {
             key: 'copy-uuid',
             label: 'copy uuid',
-            action: () => console.log('Открытие статистики для', id),
+            action: () => info?.uuid && navigator.clipboard.writeText(info.uuid),
         }
     ];
 
     return (
         <ContextMenuWrapper items={menuItems}>
             <button className={style.playerTrigger} title={info?.uuid} type="button">
-                <Text>{info?.name ?? "Загрузка..."}</Text>
+                <Text>{info?.name ?? "Loading..."}</Text>
             </button>
         </ContextMenuWrapper>
     );

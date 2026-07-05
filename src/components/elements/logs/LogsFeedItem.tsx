@@ -3,7 +3,8 @@ import type { AdminCommandLogEvent, ChatMessageLogEvent, GameBeginLogEvent, Game
 import { TAG_NAMES, formatUuid } from './types'
 import style from './Logs.module.scss'
 import Text from '@/components/ui/Text'
-import Player from '@/components/ui/players/Player'
+import Player from '@/components/ui/text/Player'
+import GameMap from '@/components/ui/text/GameMap'
 
 interface Props {
     entry: LogEntity
@@ -45,8 +46,8 @@ const renders: RendersMap = {
     5: e => <><Player id={e.actor} /><Text> votekicked </Text><Player id={e.target} /><Text>: [accent]{e.reason}[]</Text></>,
     6: e => <><Player id={e.player} /><Text> left [gray]({e.players + ""} players)</Text></>,
     7: e => <><Player id={e.player} /><Text> joined [gray]({e.players + ""} players)</Text></>,
-    8: e => <Text>Game over: [accent]{e.map}[] wave [accent]{e.wave}</Text>,
-    9: e => <Text>Game begin: [accent]{e.map}</Text>,
+    8: e => <><Text>Game over: </Text><GameMap>{e.map}</GameMap><Text> wave [accent]{e.wave}</Text></>,
+    9: e => <><Text>Game begin: </Text><GameMap>{e.map}</GameMap></>,
 }
 
 function renderLog(log: LogEntity) {
