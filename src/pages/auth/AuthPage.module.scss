@@ -43,5 +43,17 @@
 
 .auth {
     width: 100%;
+    font: inherit;
     margin-top: var(--gap-y1);
+    color: var(--text-bright);
+    border: var(--border);
+    background: var(--border-color);
+    border-radius: var(--border-radius);
+    height: 2em;
+    transition: var(--transition);
+
+    &:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
 }
