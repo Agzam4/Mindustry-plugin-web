@@ -23,7 +23,6 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
 
     useEffect(() => {
         initialScrolled.current = false
-        console.log("Refresh")
     }, [logsFilterKey(filters)])
 
     useEffect(() => {

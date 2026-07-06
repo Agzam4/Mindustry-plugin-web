@@ -5,15 +5,12 @@ import { LogsFeed } from '@/components/elements/logs/LogsFeed'
 import { LogsDetails } from '@/components/elements/logs/LogsDetails'
 import style from '@/components/elements/logs/Logs.module.scss'
 import { useLogFilterStore } from '@/components/elements/logs/useFiltersStore'
-import { logsFilterKey } from '@/components/elements/logs/types'
 
 const LogsFeedMemo = memo(LogsFeed)
 
 export default function LogsPage() {
     const [selected, setSelected] = useState<LogEntity | null>(null)
-
     const filters = useLogFilterStore((state) => state.filters);
-    console.log("Repage", logsFilterKey(filters))
 
     return (
         <div className={style.panels}>

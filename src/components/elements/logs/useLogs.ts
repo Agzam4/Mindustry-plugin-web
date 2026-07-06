@@ -94,7 +94,6 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
                 let lid: number | null = initId
                 if (lid === null) {
                     const [lastId, err] = await Api.logs.lastId()
-                    console.log("No id provided, fetched: ", lastId)
                     if (lastId !== null) lid = lastId
                 }
 
@@ -106,7 +105,6 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
                     return
                 }
 
-                console.log("Selected log:", lid)
                 const startFrom = Math.floor(lid)
 
                 const entries = await bufferRef.current.past(startFrom, pageSize)
