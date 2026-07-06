@@ -25,7 +25,7 @@
 }
 
 .active {
-    color: var(--accent);
+    color: var(--accent-alt);
     background: var(--accent-glow);
 }
 
@@ -36,7 +36,7 @@
     top: calc(50% - 30%);
     width: 3px;
     height: 60%;
-    background: var(--accent);
+    background: var(--accent-alt);
     border-radius: 0px 3px 3px 0px;
     transform: scale(0);
     transition: var(--transition);

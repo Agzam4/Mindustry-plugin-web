@@ -28,7 +28,7 @@ const COLORS: Record<string, string> = {
     brown: "#8B4513FF",
     tan: "#D2B48CFF",
     brick: "#B22222FF",
-    red: "#FF0000FF",
+    red: "#e55454",
     scarlet: "#FF341CFF",
     coral: "#FF7F50FF",
     salmon: "#FA8072FF",

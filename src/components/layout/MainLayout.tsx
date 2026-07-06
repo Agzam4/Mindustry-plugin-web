@@ -8,7 +8,6 @@ import DesktopLayout from './DesktopLayout.module.scss';
 import AuthPage from "@/pages/auth/AuthPage";
 
 export function MainLayout() {
-
     return (
         <div className={DesktopLayout.layout}>
             <Navbar />

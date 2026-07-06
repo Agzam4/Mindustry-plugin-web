@@ -1,0 +1,32 @@
+.spoiler {
+    font: inherit;
+    display: inline;
+    line-height: inherit;
+
+    color: inherit;
+    border: none;
+    padding: 0 .5rem;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    background: var(--bg-accent);
+
+    vertical-align: bottom;
+    text-align: inherit;
+    appearance: none;
+
+    border-radius: 3px;
+    user-select: auto !important;
+
+    &.hidden>* {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    &:hover {
+        background: var(--bg-accent-hover);
+    }
+}
