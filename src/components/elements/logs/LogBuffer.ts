@@ -24,7 +24,6 @@ export class LogBuffer {
 
 
     constructor(filters?: LogFilters) {
-        console.log("Log buffer with", filters && logsFilterKey(filters))
         if (filters) {
             this.filters = filters
 
@@ -33,7 +32,6 @@ export class LogBuffer {
                 collected[tag] = []
                 map.forEach(p => collected[tag].push(p))
             }
-            console.log(collected, filters)
 
             this.filter = e => {
                 if (filters.tags.length > 0 && !filters.tags.includes(e.tag)) return false
@@ -45,11 +43,6 @@ export class LogBuffer {
                 }
                 return true
             }
-            // if (filters.tags.length > 0) this.filter = e => {
-            //     if (!filters.tags.includes(e.tag)) return false
-            //
-            // }
-            // console.log("Filters: ", filters.tags)
         }
     }
 
@@ -109,7 +102,8 @@ export class LogBuffer {
 
     /** Collect entities from given id to 0, returns [min -> max] */
     public async past(id: number, limit: number) {
-        if (debug) console.log(`GET <= ${id} (${limit})`)
+        if (debug)
+            console.log(`GET <= ${id} (${limit})`)
         const entries: LogEntity[] = []
         let cid = id // starting from latest
         let index = limit - 1 // cursor at end
@@ -143,9 +137,10 @@ export class LogBuffer {
 
     /** Collect entities from given id to latest, returns [min -> max] */
     public async future(id: number, limit: number) {
-        if (debug) console.log(`GET >= ${id} (${limit})`)
+        if (debug)
+            console.log(`GET >= ${id} (${limit})`)
         const entries: LogEntity[] = []
-        let cid = 0 // starting from first
+        let cid = id // starting from first
         let index = 0 // cursor at start
         let allowedNonfull = 0
         while (true) {
