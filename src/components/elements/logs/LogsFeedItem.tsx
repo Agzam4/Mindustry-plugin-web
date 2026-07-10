@@ -5,6 +5,7 @@ import style from './Logs.module.scss'
 import Text from '@/components/ui/Text'
 import Player from '@/components/ui/text/Player'
 import GameMap from '@/components/ui/text/GameMap'
+import { Link, useLocation } from 'wouter'
 
 interface Props {
     entry: LogEntity
@@ -62,6 +63,7 @@ function renderLog(log: LogEntity) {
 
 export const LogsFeedItem = memo(function LogsFeedItem({ entry, selected, onClick }: Props) {
     const tagName = TAG_NAMES[entry.tag] ?? 'unknown'
+
     return (
         <div
             className={`${style.item} ${selected ? style.itemSelected : ''} ${style['tag_' + tagName] ?? ''}`}
@@ -74,7 +76,7 @@ export const LogsFeedItem = memo(function LogsFeedItem({ entry, selected, onClic
             <span title={new Date(entry.timestamp).toLocaleString()} className={style.itemTime}>{formatTime(entry.timestamp)}</span>
             <span className={style.itemDot} />
             <span className={style.itemSummary}>{renderLog(entry)}</span>
-            <span className={style.itemTime}>#{entry.globalId}</span>
+            <Link to={`/logs?id=${entry.globalId}`} className={style.itemTime}>#{entry.globalId}</Link>
         </div>
     )
 })

@@ -12,16 +12,17 @@ const LogsFeedMemo = memo(LogsFeed)
 export default function LogsPage() {
 
     const [searchParams, setSearchParams] = useSearchParams();
+    const parmId = searchParams.get("id");
+
     const [selected, setSelected] = useState<LogEntity | null>(null)
     const filters = useLogFilterStore((state) => state.filters);
 
-    const page = searchParams.get("selected") || "1";
 
     return (
         <div className={style.panels}>
             <LogsFilters />
             <main className={style.centerPanel}>
-                <LogsFeedMemo selectedId={selected === null ? null : selected.id} onSelect={setSelected} pageSize={50} />
+                <LogsFeedMemo selectedId={parmId === null ? null : parseInt(parmId)} onSelect={setSelected} pageSize={50} />
             </main>
             <aside className={style.rightPanel}>
                 {filters.tags.length == 0 && filters.tagFilters.size == 0 ? <LogsDetails entry={selected} /> : <LogsFeed filters={filters} />}
