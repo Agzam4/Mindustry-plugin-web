@@ -13,15 +13,10 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
     const stringifiedFilters = logsFilterKey(filters)
 
     const paginatorRef = useRef<LogPaginator | null>(null)
-    // if (!paginatorRef.current) {
-    //     paginatorRef.current = new LogPaginator(filters, pageSize)
-    //     console.log("Ref New paginator:", paginatorRef.current.id)
-    // }
 
     const paginator = paginatorRef.current
     const [, forceUpdate] = useState({})
     const [isPending, startTransition] = useTransition()
-    const prevInitIdRef = useRef(initId)
 
     console.log(stringifiedFilters, initId, pageSize)
 

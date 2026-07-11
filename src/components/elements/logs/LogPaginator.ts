@@ -117,11 +117,15 @@ export class LogPaginator {
             if (this.minIndex <= target && target <= this.maxIndex + this.pageSize) {
                 console.log(this.maxIndex, `+${this.pageSize} >=`, target)
                 onFuture()
+                this.reallyFirstItemIndex = target
+                this.firstItemIndex = target
                 return true
             }
             if (this.minIndex - this.pageSize <= target && target <= this.maxIndex) {
                 console.log(this.minIndex, `-${this.pageSize} <=`, target)
                 onPast()
+                this.reallyFirstItemIndex = target
+                this.firstItemIndex = target
                 return true
             }
         }
