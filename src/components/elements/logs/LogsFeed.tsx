@@ -16,7 +16,7 @@ interface Props {
 export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [], tagFilters: new Map(), applyedTagFilters: {} }, pageSize }: Props) {
     const [selectedRow, setSelectedRow] = useState<number | null>(null)
 
-    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex } = useLogs({ initId: selectedId, filters, pageSize })
+    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex, reallyFirstItemIndex } = useLogs({ initId: selectedId, filters, pageSize })
 
     const virtuosoRef = useRef<VirtuosoHandle>(null)
     const initialScrolled = useRef(false)
@@ -49,17 +49,23 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
         )
     }
 
+    console.log(firstItemIndex, reallyFirstItemIndex)
     return (
         <div className={style.feed}>
             <Virtuoso
                 key={JSON.stringify(filters)}
                 ref={virtuosoRef}
                 style={{ height: '100%' }}
-                data={logs}
+
                 firstItemIndex={firstItemIndex}
+                data={logs}
+                initialTopMostItemIndex={reallyFirstItemIndex}
+                // initialTopMostItemIndex={100000}
+
                 startReached={loadOlder}
                 endReached={loadNewer}
                 increaseViewportBy={{ top: 400, bottom: 400 }}
+                //               computeItemKey={(index, item) => item.globalId}
                 itemContent={(index, entry) => (
                     <LogsFeedItem
                         entry={entry}
