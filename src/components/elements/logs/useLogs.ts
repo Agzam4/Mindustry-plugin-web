@@ -13,18 +13,34 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
     const stringifiedFilters = logsFilterKey(filters)
 
     const paginatorRef = useRef<LogPaginator | null>(null)
-    if (!paginatorRef.current) {
-        paginatorRef.current = new LogPaginator(filters, pageSize)
-    }
+    // if (!paginatorRef.current) {
+    //     paginatorRef.current = new LogPaginator(filters, pageSize)
+    //     console.log("Ref New paginator:", paginatorRef.current.id)
+    // }
 
     const paginator = paginatorRef.current
     const [, forceUpdate] = useState({})
     const [isPending, startTransition] = useTransition()
+    const prevInitIdRef = useRef(initId)
+
+    console.log(stringifiedFilters, initId, pageSize)
 
     useEffect(() => {
         console.log(stringifiedFilters, initId, pageSize)
+        console.log("=== useEffect ===")
+        console.log(filters)
+
+        if (paginator !== null && initId !== null) {
+            if (paginator.loadNear(initId, loadNewer, loadOlder)) {
+                console.log("- Target is near")
+
+                return
+            }
+        }
+
 
         const newPaginator = new LogPaginator(filters, pageSize)
+        console.log("- New paginator:", newPaginator.id)
         paginatorRef.current = newPaginator
 
         let cancelled = false
@@ -45,33 +61,32 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
 
     const loadOlder = useCallback(() => {
         const currentPaginator = paginatorRef.current
-        if (!currentPaginator || isPending || !currentPaginator.hasMoreOlder) return
+        if (!currentPaginator || isPending || !currentPaginator.canDecrease) return
 
         startTransition(async () => {
-            const hasChanged = await currentPaginator.loadOlder()
+            const hasChanged = await currentPaginator.loadMin()
             if (hasChanged) forceUpdate({})
         })
     }, [isPending])
 
     const loadNewer = useCallback(() => {
         const currentPaginator = paginatorRef.current
-        if (!currentPaginator || isPending || !currentPaginator.hasMoreNewer) return
+        if (!currentPaginator || isPending || !currentPaginator.canIncrease) return
 
         startTransition(async () => {
-            const hasChanged = await currentPaginator.loadNewer()
+            const hasChanged = await currentPaginator.loadMax()
             if (hasChanged) forceUpdate({})
         })
     }, [isPending])
 
-    const firstItemIndex = paginator.firstItemIndex ?? (paginator.logs[0]?.globalId ?? 0)
-    const reallyFirstItemIndex = paginator.reallyFirstItemIndex ?? (paginator.logs[0]?.globalId ?? 0)
-    console.log(firstItemIndex)
+    const firstItemIndex = paginator === null ? 0 : (paginator.firstItemIndex ?? (paginator.logs[0]?.globalId ?? 0))
+    const reallyFirstItemIndex = paginator === null ? 0 : (paginator.reallyFirstItemIndex ?? (paginator.logs[0]?.globalId ?? 0))
 
     return {
-        logs: paginator.logs,
+        logs: paginator === null ? [] : paginator.logs,
         loading: isPending,
-        hasMoreOlder: paginator.hasMoreOlder,
-        hasMoreNewer: paginator.hasMoreNewer,
+        hasMoreOlder: paginator === null ? false : paginator.canDecrease,
+        hasMoreNewer: paginator === null ? false : paginator.canIncrease,
         loadOlder,
         loadNewer,
         firstItemIndex,

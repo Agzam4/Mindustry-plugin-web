@@ -49,7 +49,6 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
         )
     }
 
-    console.log(firstItemIndex, reallyFirstItemIndex)
     return (
         <div className={style.feed}>
             <Virtuoso

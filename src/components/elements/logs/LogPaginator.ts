@@ -4,15 +4,21 @@ import { LogBuffer } from './LogBuffer'
 import { type LogFilters } from './types'
 
 export class LogPaginator {
+
+    private static ids = 0
+    public readonly id = LogPaginator.ids++
+
     private buffer: LogBuffer
     private pageSize: number
 
-    private pastIndex: number | null = null
-    private futureIndex: number | null = null
+    private minIndex: number | null = null // past
+    private maxIndex: number | null = null // future
 
     public logs: LogEntity[] = []
-    public hasMoreOlder = true
-    public hasMoreNewer = true
+
+    public canDecrease = true // has past
+    public canIncrease = true // has future
+
     public firstItemIndex: number | null = null
     public reallyFirstItemIndex: number | null = null
 
@@ -28,7 +34,7 @@ export class LogPaginator {
         }
 
         if (lid === null || lid <= 0) {
-            this.hasMoreOlder = false
+            this.canDecrease = false
             this.logs = []
             return this
         }
@@ -37,37 +43,39 @@ export class LogPaginator {
         const entries = await this.buffer.past(startFrom, this.pageSize)
 
         if (entries.length === 0) {
-            this.hasMoreOlder = false
+            this.canDecrease = false
             this.logs = []
             return this
         }
 
         this.logs = entries
-        const oldest = entries[0].globalId
-        const newest = entries[entries.length - 1].globalId
+        const minimum = entries[0].globalId
+        const maximum = entries[entries.length - 1].globalId
 
         this.firstItemIndex = lid
         this.reallyFirstItemIndex = lid
-        this.pastIndex = Math.max(0, newest - 1)
-        this.futureIndex = newest + 1
-        this.hasMoreOlder = oldest > 0
-        this.hasMoreNewer = true
+
+        this.minIndex = Math.max(0, minimum - 1)
+        this.maxIndex = maximum + 1
+
+        this.canDecrease = minimum > 0
+        this.canIncrease = true
 
         return this
     }
 
-    async loadOlder(): Promise<boolean> {
-        if (!this.hasMoreOlder || this.pastIndex === null) return false
+    async loadMin(): Promise<boolean> {
+        if (!this.canDecrease || this.minIndex === null) return false
 
-        const entries = await this.buffer.past(this.pastIndex, this.pageSize)
+        const entries = await this.buffer.past(this.minIndex, this.pageSize)
 
         if (entries.length === 0) {
-            this.pastIndex = 0
-            this.hasMoreOlder = false
-            return true // состояние изменилось
+            this.minIndex = 0
+            this.canDecrease = false
+            return true
         }
 
-        this.pastIndex = entries[0].globalId - 1
+        this.minIndex = entries[0].globalId - 1
         this.logs = [...entries, ...this.logs]
 
         if (this.firstItemIndex !== null) {
@@ -75,28 +83,50 @@ export class LogPaginator {
         }
 
         if (entries.length < this.pageSize || entries[0].globalId <= 0) {
-            this.hasMoreOlder = false
+            this.canDecrease = false
         }
         return true
     }
 
-    async loadNewer(): Promise<boolean> {
-        if (!this.hasMoreNewer || this.futureIndex === null) return false
+    async loadMax(): Promise<boolean> {
+        if (!this.canIncrease || this.maxIndex === null) return false
 
-        const entries = await this.buffer.future(this.futureIndex, this.pageSize)
+        const entries = await this.buffer.future(this.maxIndex, this.pageSize)
 
         if (entries.length === 0) {
-            this.futureIndex = this.futureIndex + 1
-            this.hasMoreNewer = false
+            this.maxIndex = this.maxIndex + 1
+            this.canIncrease = false
             return true
         }
 
-        this.futureIndex = entries[entries.length - 1].globalId + 1
+        this.maxIndex = entries[entries.length - 1].globalId + 1
         this.logs = [...this.logs, ...entries]
 
         if (entries.length < this.pageSize) {
-            this.hasMoreNewer = false
+            this.canIncrease = false
         }
         return true
+    }
+
+    /* Is <= 1 loading required to reach value */
+    loadNear(target: number, onFuture: () => void, onPast: () => void) {
+        if (target < 0) return true
+
+        if (this.maxIndex !== null && this.minIndex !== null) {
+            if (this.minIndex <= target && target <= this.maxIndex) return true // already inside
+            if (this.minIndex <= target && target <= this.maxIndex + this.pageSize) {
+                console.log(this.maxIndex, `+${this.pageSize} >=`, target)
+                onFuture()
+                return true
+            }
+            if (this.minIndex - this.pageSize <= target && target <= this.maxIndex) {
+                console.log(this.minIndex, `-${this.pageSize} <=`, target)
+                onPast()
+                return true
+            }
+        }
+
+
+        return false
     }
 }
