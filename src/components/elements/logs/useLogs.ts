@@ -18,66 +18,71 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
     const [, forceUpdate] = useState({})
     const [isPending, startTransition] = useTransition()
 
-    console.log(stringifiedFilters, initId, pageSize)
-
     useEffect(() => {
-        console.log(stringifiedFilters, initId, pageSize)
-        console.log("=== useEffect ===")
-        console.log(filters)
 
+        console.log("=== useEffect ===")
         if (paginator !== null && initId !== null) {
             if (paginator.loadNear(initId, loadNewer, loadOlder)) {
-                console.log("- Target is near")
-
                 return
             }
         }
 
 
         const newPaginator = new LogPaginator(filters, pageSize)
-        console.log("- New paginator:", newPaginator.id)
         paginatorRef.current = newPaginator
 
-        let cancelled = false
+        const controller = new AbortController();
+        const { signal } = controller;
 
         startTransition(async () => {
-            await newPaginator.initialize(initId, async () => {
-                const [lastId] = await Api.logs.lastId()
-                return lastId
-            })
+            if (initId === null) {
+                const [lastId, error] = await Api.logs.lastId(signal)
+                if (error) {
 
-            if (!cancelled) {
-                forceUpdate({})
+                    return
+                }
+                initId = lastId
             }
+            await newPaginator.initialize(initId, signal)
+            if (signal.aborted) return;
+            forceUpdate({})
         })
 
-        return () => { cancelled = true }
+        return () => { controller.abort() }
     }, [stringifiedFilters, initId, pageSize])
 
     const loadOlder = useCallback(() => {
-        console.log("call - ")
+        console.log("Load older")
         const currentPaginator = paginatorRef.current
-        if (!currentPaginator || isPending || !currentPaginator.canDecrease) return
+        if (!currentPaginator?.canDecrease) return
 
         startTransition(async () => {
             const hasChanged = await currentPaginator.loadMin()
             if (hasChanged) forceUpdate({})
         })
-    }, [isPending])
+    }, [])
 
     const loadNewer = useCallback(() => {
-        console.log("call + ")
+        console.log("Load newer")
         const currentPaginator = paginatorRef.current
-        if (!currentPaginator || isPending || !currentPaginator.canIncrease) return
+        if (!currentPaginator?.canIncrease) return
 
         startTransition(async () => {
             const hasChanged = await currentPaginator.loadMax()
             if (hasChanged) forceUpdate({})
         })
-    }, [isPending])
+    }, [])
 
-    const firstItemIndex = paginator === null ? 0 : ((paginator.firstItemIndex ?? (paginator.logs[0]?.globalId ?? 0)) - 1)
-    const reallyFirstItemIndex = paginator === null ? 0 : ((paginator.reallyFirstItemIndex ?? (paginator.logs[0]?.globalId ?? 0)) - 1)
+    let firstItemIndex = 0;
+    let reallyFirstItemIndex = 0;
+    let offset = 0
+
+    if (paginator !== null) {
+        firstItemIndex = paginator.firstItemIndex ?? 0
+        reallyFirstItemIndex = paginator.initFromIndex ?? 0
+        offset = paginator.offset()
+        console.log(paginator)
+    }
 
     return {
         logs: paginator === null ? [] : paginator.logs,
@@ -87,6 +92,7 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
         loadOlder,
         loadNewer,
         firstItemIndex: firstItemIndex,
-        reallyFirstItemIndex: reallyFirstItemIndex
+        reallyFirstItemIndex: reallyFirstItemIndex,
+        offset: offset
     }
 }

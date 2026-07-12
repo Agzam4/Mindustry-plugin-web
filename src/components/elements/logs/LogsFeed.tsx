@@ -16,14 +16,17 @@ interface Props {
 export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [], tagFilters: new Map(), applyedTagFilters: {} }, pageSize }: Props) {
     const [selectedRow, setSelectedRow] = useState<number | null>(null)
 
-    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex, reallyFirstItemIndex } = useLogs({ initId: selectedId, filters, pageSize })
+    // console.log('selectedId', selectedId)
+    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex, reallyFirstItemIndex, offset } = useLogs({ initId: selectedId, filters, pageSize })
 
-    if (reallyFirstItemIndex <= 0) return
-    <div className={style.feed}>
-        <div className={style.sentinel}>
-            <span className={style.endMarker}>Loading...</span>
+    console.log(reallyFirstItemIndex)
+    if (reallyFirstItemIndex < 0)
+        return <div className={style.feed}>
+            <div className={style.sentinel}>
+                <span className={style.endMarker}>Loading...</span>
+            </div>
         </div>
-    </div>
+
 
     if (logs.length === 0 && !loading) {
         return (
@@ -35,7 +38,7 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
         )
     }
 
-    console.log(firstItemIndex, '/', reallyFirstItemIndex)
+    console.log('first', firstItemIndex, 'init', reallyFirstItemIndex, 'offset', offset)
     return (
         <div className={style.feed}>
             <Virtuoso
@@ -50,7 +53,9 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
                 endReached={loadNewer}
 
                 increaseViewportBy={{ top: 400, bottom: 400 }}
-                computeItemKey={(index, item) => index + firstItemIndex}
+
+                computeItemKey={(index, item) => index + offset}
+
                 itemContent={(index, entry) => (
                     <LogsFeedItem
                         entry={entry}

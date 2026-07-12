@@ -20,27 +20,24 @@ export class LogPaginator {
     public canIncrease = true // has future
 
     public firstItemIndex: number | null = null
-    public reallyFirstItemIndex: number | null = null
+    public initFromIndex: number | null = null
 
     constructor(filters: LogFilters, pageSize: number) {
         this.buffer = new LogBuffer(filters)
         this.pageSize = pageSize
     }
 
-    async initialize(initId: number | null, fetchLastId: () => Promise<number | null>) {
+    async initialize(initId: number, signal: AbortSignal) {
         let lid = initId
-        if (lid === null) {
-            lid = await fetchLastId()
-        }
 
-        if (lid === null || lid <= 0) {
+        if (lid < 0) {
             this.canDecrease = false
             this.logs = []
             return this
         }
 
-        const startFrom = Math.floor(lid)
-        const entries = await this.buffer.past(startFrom, this.pageSize)
+        const first = Math.max(this.pageSize, lid)
+        const entries = await this.buffer.past(first, this.pageSize, signal)
 
         if (entries.length === 0) {
             this.canDecrease = false
@@ -49,14 +46,16 @@ export class LogPaginator {
         }
 
         this.logs = entries
+        // console.log(this.logs)
         const minimum = entries[0].globalId
         const maximum = entries[entries.length - 1].globalId
 
-        this.firstItemIndex = lid
-        this.reallyFirstItemIndex = lid
+        this.firstItemIndex = first
+        this.initFromIndex = lid
 
         this.minIndex = Math.max(0, minimum - 1)
         this.maxIndex = maximum + 1
+        // console.log(`[${this.minIndex}, ${this.maxIndex}]`)
 
         this.canDecrease = minimum > 0
         this.canIncrease = true
@@ -76,7 +75,9 @@ export class LogPaginator {
         }
 
         this.minIndex = entries[0].globalId - 1
+        console.log(`[${this.minIndex}, ${this.maxIndex}]`)
         this.logs = [...entries, ...this.logs]
+        console.log(this.logs)
 
         if (this.firstItemIndex !== null) {
             this.firstItemIndex -= entries.length
@@ -84,6 +85,7 @@ export class LogPaginator {
 
         if (entries.length < this.pageSize || entries[0].globalId <= 0) {
             this.canDecrease = false
+            console.log("bottom limit")
         }
         return true
     }
@@ -100,10 +102,13 @@ export class LogPaginator {
         }
 
         this.maxIndex = entries[entries.length - 1].globalId + 1
+        console.log(`[${this.minIndex}, ${this.maxIndex}]`)
         this.logs = [...this.logs, ...entries]
+        console.log(this.logs)
 
         if (entries.length < this.pageSize) {
             this.canIncrease = false
+            console.log("top limit")
         }
         return true
     }
@@ -111,20 +116,21 @@ export class LogPaginator {
     /* Is <= 1 loading required to reach value */
     loadNear(target: number, onFuture: () => void, onPast: () => void) {
         if (target < 0) return true
+        console.log("near")
 
         if (this.maxIndex !== null && this.minIndex !== null) {
             if (this.minIndex <= target && target <= this.maxIndex) return true // already inside
             if (this.minIndex <= target && target <= this.maxIndex + this.pageSize) {
                 console.log(this.maxIndex, `+${this.pageSize} >=`, target)
                 onFuture()
-                this.reallyFirstItemIndex = target
+                this.initFromIndex = target
                 this.firstItemIndex = target
                 return true
             }
             if (this.minIndex - this.pageSize <= target && target <= this.maxIndex) {
                 console.log(this.minIndex, `-${this.pageSize} <=`, target)
                 onPast()
-                this.reallyFirstItemIndex = target
+                this.initFromIndex = target
                 this.firstItemIndex = target
                 return true
             }
@@ -132,5 +138,10 @@ export class LogPaginator {
 
 
         return false
+    }
+
+
+    offset() {
+        return this.minIndex ?? 0
     }
 }

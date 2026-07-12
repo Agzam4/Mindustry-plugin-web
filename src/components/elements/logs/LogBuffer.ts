@@ -46,14 +46,14 @@ export class LogBuffer {
         }
     }
 
-    private async fetch(fromId: number, limit: number) {
+    private async fetch(fromId: number, limit: number, signal?: AbortSignal) {
         const [data] = await Api.logs.search({
             id: fromId,
             limit,
             t1: 0, t2: 999999999999999,
             tags: this.filters.tags,
             query: "",
-        })
+        }, signal)
         return data ?? []
     }
 
@@ -62,7 +62,7 @@ export class LogBuffer {
     }
 
     /** Update last used of chunk and init it of not exsist */
-    private async touchChunk(chunk: number) {
+    private async touchChunk(chunk: number, signal?: AbortSignal) {
         // TODO: remove lru chunks
 
         if (this.chunks[chunk] == null) {
@@ -71,7 +71,7 @@ export class LogBuffer {
                 id: starId,
                 size: PAGE_SIZE,
                 lastUsed: ++this.seq,
-                entries: (await this.fetch(starId, PAGE_SIZE)).filter(c => c !== null && c !== undefined)
+                entries: (await this.fetch(starId, PAGE_SIZE, signal)).filter(c => c !== null && c !== undefined)
             }
             const c = this.chunks[chunk]
             c.entries.sort((e1, e2) => e1.globalId - e2.globalId)
@@ -93,15 +93,15 @@ export class LogBuffer {
     }
 
     /** Update last used of chunks in range and init they of not exsist */
-    private async touch(maxId: number, minId: number) {
+    private async touch(maxId: number, minId: number, signal: AbortSignal) {
         const endChunk = this.chunkId(maxId)
         for (let c = this.chunkId(minId); c < endChunk; c++) {
-            this.touchChunk(c)
+            this.touchChunk(c, signal)
         }
     }
 
     /** Collect entities from given id to 0, returns [min -> max] */
-    public async past(id: number, limit: number) {
+    public async past(id: number, limit: number, signal?: AbortSignal) {
         if (debug)
             console.log(`GET <= ${id} (${limit})`)
         const entries: LogEntity[] = []
@@ -110,7 +110,7 @@ export class LogBuffer {
         let allowedNonfull = 0
         while (true) {
             const chunkId = this.chunkId(cid)
-            const chunk = await this.touchChunk(chunkId)
+            const chunk = await this.touchChunk(chunkId, signal)
             cid -= chunk.size
 
             if (chunk.entries.length !== chunk.size) {
@@ -136,7 +136,7 @@ export class LogBuffer {
     }
 
     /** Collect entities from given id to latest, returns [min -> max] */
-    public async future(id: number, limit: number) {
+    public async future(id: number, limit: number, signal?: AbortSignal) {
         if (debug)
             console.log(`GET >= ${id} (${limit})`)
         const entries: LogEntity[] = []
@@ -145,7 +145,7 @@ export class LogBuffer {
         let allowedNonfull = 0
         while (true) {
             const chunkId = this.chunkId(cid)
-            const chunk = await this.touchChunk(chunkId)
+            const chunk = await this.touchChunk(chunkId, signal)
             cid += chunk.size
 
             if (chunk.entries.length !== chunk.size) {
