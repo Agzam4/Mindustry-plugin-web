@@ -18,26 +18,12 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
 
     const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex, reallyFirstItemIndex } = useLogs({ initId: selectedId, filters, pageSize })
 
-    const virtuosoRef = useRef<VirtuosoHandle>(null)
-    const initialScrolled = useRef(false)
-
-    useEffect(() => {
-        initialScrolled.current = false
-    }, [logsFilterKey(filters)])
-
-    useEffect(() => {
-        if (logs.length > 0 && !initialScrolled.current && !loading) {
-            initialScrolled.current = true
-            requestAnimationFrame(() => {
-                virtuosoRef.current?.scrollToIndex({
-                    index: logs.length - 1,
-                    align: 'end',
-                    behavior: 'auto',
-                })
-            })
-        }
-    }, [logs, loading])
-
+    if (reallyFirstItemIndex <= 0) return
+    <div className={style.feed}>
+        <div className={style.sentinel}>
+            <span className={style.endMarker}>Loading...</span>
+        </div>
+    </div>
 
     if (logs.length === 0 && !loading) {
         return (
@@ -49,22 +35,22 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
         )
     }
 
+    console.log(firstItemIndex, '/', reallyFirstItemIndex)
     return (
         <div className={style.feed}>
             <Virtuoso
                 key={JSON.stringify(filters)}
-                ref={virtuosoRef}
                 style={{ height: '100%' }}
 
                 firstItemIndex={firstItemIndex}
                 data={logs}
                 initialTopMostItemIndex={reallyFirstItemIndex}
-                // initialTopMostItemIndex={100000}
 
                 startReached={loadOlder}
                 endReached={loadNewer}
+
                 increaseViewportBy={{ top: 400, bottom: 400 }}
-                //               computeItemKey={(index, item) => item.globalId}
+                computeItemKey={(index, item) => index + firstItemIndex}
                 itemContent={(index, entry) => (
                     <LogsFeedItem
                         entry={entry}

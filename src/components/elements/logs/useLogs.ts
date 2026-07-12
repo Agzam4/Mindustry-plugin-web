@@ -9,7 +9,7 @@ interface Props {
     filters: LogFilters
 }
 
-export function useLogs({ initId, pageSize = 25, filters }: Props) {
+export function useLogs({ initId, pageSize = 5, filters }: Props) {
     const stringifiedFilters = logsFilterKey(filters)
 
     const paginatorRef = useRef<LogPaginator | null>(null)
@@ -55,6 +55,7 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
     }, [stringifiedFilters, initId, pageSize])
 
     const loadOlder = useCallback(() => {
+        console.log("call - ")
         const currentPaginator = paginatorRef.current
         if (!currentPaginator || isPending || !currentPaginator.canDecrease) return
 
@@ -65,6 +66,7 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
     }, [isPending])
 
     const loadNewer = useCallback(() => {
+        console.log("call + ")
         const currentPaginator = paginatorRef.current
         if (!currentPaginator || isPending || !currentPaginator.canIncrease) return
 
@@ -74,8 +76,8 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
         })
     }, [isPending])
 
-    const firstItemIndex = paginator === null ? 0 : (paginator.firstItemIndex ?? (paginator.logs[0]?.globalId ?? 0))
-    const reallyFirstItemIndex = paginator === null ? 0 : (paginator.reallyFirstItemIndex ?? (paginator.logs[0]?.globalId ?? 0))
+    const firstItemIndex = paginator === null ? 0 : ((paginator.firstItemIndex ?? (paginator.logs[0]?.globalId ?? 0)) - 1)
+    const reallyFirstItemIndex = paginator === null ? 0 : ((paginator.reallyFirstItemIndex ?? (paginator.logs[0]?.globalId ?? 0)) - 1)
 
     return {
         logs: paginator === null ? [] : paginator.logs,
@@ -84,7 +86,7 @@ export function useLogs({ initId, pageSize = 25, filters }: Props) {
         hasMoreNewer: paginator === null ? false : paginator.canIncrease,
         loadOlder,
         loadNewer,
-        firstItemIndex,
-        reallyFirstItemIndex
+        firstItemIndex: firstItemIndex,
+        reallyFirstItemIndex: reallyFirstItemIndex
     }
 }
