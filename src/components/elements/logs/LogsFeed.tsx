@@ -42,7 +42,7 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
     return (
         <div className={style.feed}>
             <Virtuoso
-                key={JSON.stringify(filters)}
+                key={`${JSON.stringify(filters)}-${reallyFirstItemIndex}`}
                 style={{ height: '100%' }}
 
                 firstItemIndex={firstItemIndex}

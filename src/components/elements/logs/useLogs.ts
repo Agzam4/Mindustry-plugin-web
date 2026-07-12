@@ -79,7 +79,7 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
 
     if (paginator !== null) {
         firstItemIndex = paginator.firstItemIndex ?? 0
-        reallyFirstItemIndex = paginator.initFromIndex ?? 0
+        reallyFirstItemIndex = (paginator.initFromIndex ?? 0) - firstItemIndex
         offset = paginator.offset()
         console.log(paginator)
     }

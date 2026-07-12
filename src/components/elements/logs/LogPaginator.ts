@@ -50,7 +50,7 @@ export class LogPaginator {
         const minimum = entries[0].globalId
         const maximum = entries[entries.length - 1].globalId
 
-        this.firstItemIndex = first
+        this.firstItemIndex = minimum
         this.initFromIndex = lid
 
         this.minIndex = Math.max(0, minimum - 1)
