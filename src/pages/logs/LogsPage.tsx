@@ -22,7 +22,7 @@ export default function LogsPage() {
         <div className={style.panels}>
             <LogsFilters />
             <main className={style.centerPanel}>
-                <LogsFeedMemo selectedId={parmId === null ? null : parseInt(parmId)} onSelect={setSelected} pageSize={50} />
+                <LogsFeedMemo selectedId={parmId === null ? null : parseInt(parmId)} onSelect={setSelected} pageSize={15} />
             </main>
             <aside className={style.rightPanel}>
                 {filters.tags.length == 0 && filters.tagFilters.size == 0 ? <LogsDetails entry={selected} /> : <LogsFeed filters={filters} />}
