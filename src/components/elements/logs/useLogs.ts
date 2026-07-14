@@ -13,6 +13,7 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
     const stringifiedFilters = logsFilterKey(filters)
 
     const paginatorRef = useRef<LogPaginator | null>(null)
+    const [scrollTarget, setScrollTarget] = useState<number | null>(null)
 
     const paginator = paginatorRef.current
     const [, forceUpdate] = useState({})
@@ -23,10 +24,12 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
         console.log("=== useEffect ===")
         if (paginator !== null && initId !== null) {
             if (paginator.loadNear(initId, loadNewer, loadOlder)) {
+                setScrollTarget(initId)
                 return
             }
         }
 
+        setScrollTarget(null)
 
         const newPaginator = new LogPaginator(filters, pageSize)
         paginatorRef.current = newPaginator
@@ -58,7 +61,9 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
 
         startTransition(async () => {
             const hasChanged = await currentPaginator.loadMin()
-            if (hasChanged) forceUpdate({})
+            if (hasChanged) {
+                forceUpdate({})
+            }
         })
     }, [])
 
@@ -69,7 +74,9 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
 
         startTransition(async () => {
             const hasChanged = await currentPaginator.loadMax()
-            if (hasChanged) forceUpdate({})
+            if (hasChanged) {
+                forceUpdate({})
+            }
         })
     }, [])
 
@@ -93,6 +100,8 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
         loadNewer,
         firstItemIndex: firstItemIndex,
         reallyFirstItemIndex: reallyFirstItemIndex,
-        offset: offset
+        offset: offset,
+        scrollTarget,
+        paginatorId: paginator?.id ?? -1,
     }
 }

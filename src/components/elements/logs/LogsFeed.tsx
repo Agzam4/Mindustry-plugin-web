@@ -15,11 +15,20 @@ interface Props {
 
 export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { tags: [], tagFilters: new Map(), applyedTagFilters: {} }, pageSize }: Props) {
     const [selectedRow, setSelectedRow] = useState<number | null>(null)
+    const virtuosoRef = useRef<VirtuosoHandle>(null)
 
-    // console.log('selectedId', selectedId)
-    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex, reallyFirstItemIndex, offset } = useLogs({ initId: selectedId, filters, pageSize })
+    const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex, reallyFirstItemIndex, offset, scrollTarget, paginatorId } = useLogs({ initId: selectedId, filters, pageSize })
 
-    console.log(reallyFirstItemIndex)
+    console.log("scrollTarget", scrollTarget)
+    useEffect(() => {
+        if (scrollTarget !== null && virtuosoRef.current) {
+            requestAnimationFrame(() => {
+                setSelectedRow(selectedId)
+                virtuosoRef.current?.scrollToIndex({ index: scrollTarget - offset, align: 'center', behavior: 'smooth' })
+            })
+        }
+    }, [scrollTarget])
+
     if (reallyFirstItemIndex < 0)
         return <div className={style.feed}>
             <div className={style.sentinel}>
@@ -38,11 +47,11 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
         )
     }
 
-    console.log('first', firstItemIndex, 'init', reallyFirstItemIndex, 'offset', offset)
     return (
         <div className={style.feed}>
             <Virtuoso
-                key={`${JSON.stringify(filters)}-${reallyFirstItemIndex}`}
+                ref={virtuosoRef}
+                key={`${JSON.stringify(filters)}-${paginatorId}`}
                 style={{ height: '100%' }}
 
                 firstItemIndex={firstItemIndex}

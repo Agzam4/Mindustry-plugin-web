@@ -119,19 +119,20 @@ export class LogPaginator {
         console.log("near")
 
         if (this.maxIndex !== null && this.minIndex !== null) {
-            if (this.minIndex <= target && target <= this.maxIndex) return true // already inside
+            if (this.minIndex <= target && target <= this.maxIndex) {
+                // this.initFromIndex = target
+                return true // already inside
+            }
             if (this.minIndex <= target && target <= this.maxIndex + this.pageSize) {
                 console.log(this.maxIndex, `+${this.pageSize} >=`, target)
                 onFuture()
-                this.initFromIndex = target
-                this.firstItemIndex = target
+                // this.initFromIndex = target
                 return true
             }
             if (this.minIndex - this.pageSize <= target && target <= this.maxIndex) {
                 console.log(this.minIndex, `-${this.pageSize} <=`, target)
                 onPast()
-                this.initFromIndex = target
-                this.firstItemIndex = target
+                // this.initFromIndex = target
                 return true
             }
         }
