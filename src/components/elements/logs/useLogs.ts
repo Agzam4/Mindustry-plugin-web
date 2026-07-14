@@ -9,7 +9,7 @@ interface Props {
     filters: LogFilters
 }
 
-export function useLogs({ initId, pageSize = 5, filters }: Props) {
+export function useLogs({ initId, pageSize = 10, filters }: Props) {
     const stringifiedFilters = logsFilterKey(filters)
 
     const paginatorRef = useRef<LogPaginator | null>(null)
@@ -21,7 +21,6 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
 
     useEffect(() => {
 
-        console.log("=== useEffect ===")
         if (paginator !== null && initId !== null) {
             if (paginator.loadNear(initId, loadNewer, loadOlder)) {
                 setScrollTarget(initId)
@@ -55,7 +54,6 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
     }, [stringifiedFilters, initId, pageSize])
 
     const loadOlder = useCallback(() => {
-        console.log("Load older")
         const currentPaginator = paginatorRef.current
         if (!currentPaginator?.canDecrease) return
 
@@ -68,7 +66,6 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
     }, [])
 
     const loadNewer = useCallback(() => {
-        console.log("Load newer")
         const currentPaginator = paginatorRef.current
         if (!currentPaginator?.canIncrease) return
 
@@ -86,9 +83,8 @@ export function useLogs({ initId, pageSize = 5, filters }: Props) {
 
     if (paginator !== null) {
         firstItemIndex = paginator.firstItemIndex ?? 0
-        reallyFirstItemIndex = (paginator.initFromIndex ?? 0) - firstItemIndex
+        reallyFirstItemIndex = (paginator.initFromIndex ?? 0);// - firstItemIndex
         offset = paginator.offset()
-        console.log(paginator)
     }
 
     return {

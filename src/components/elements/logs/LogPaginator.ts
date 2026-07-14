@@ -46,7 +46,6 @@ export class LogPaginator {
         }
 
         this.logs = entries
-        // console.log(this.logs)
         const minimum = entries[0].globalId
         const maximum = entries[entries.length - 1].globalId
 
@@ -55,7 +54,6 @@ export class LogPaginator {
 
         this.minIndex = Math.max(0, minimum - 1)
         this.maxIndex = maximum + 1
-        // console.log(`[${this.minIndex}, ${this.maxIndex}]`)
 
         this.canDecrease = minimum > 0
         this.canIncrease = true
@@ -75,9 +73,7 @@ export class LogPaginator {
         }
 
         this.minIndex = entries[0].globalId - 1
-        console.log(`[${this.minIndex}, ${this.maxIndex}]`)
         this.logs = [...entries, ...this.logs]
-        console.log(this.logs)
 
         if (this.firstItemIndex !== null) {
             this.firstItemIndex -= entries.length
@@ -85,7 +81,6 @@ export class LogPaginator {
 
         if (entries.length < this.pageSize || entries[0].globalId <= 0) {
             this.canDecrease = false
-            console.log("bottom limit")
         }
         return true
     }
@@ -102,13 +97,10 @@ export class LogPaginator {
         }
 
         this.maxIndex = entries[entries.length - 1].globalId + 1
-        console.log(`[${this.minIndex}, ${this.maxIndex}]`)
         this.logs = [...this.logs, ...entries]
-        console.log(this.logs)
 
         if (entries.length < this.pageSize) {
             this.canIncrease = false
-            console.log("top limit")
         }
         return true
     }
@@ -116,7 +108,6 @@ export class LogPaginator {
     /* Is <= 1 loading required to reach value */
     loadNear(target: number, onFuture: () => void, onPast: () => void) {
         if (target < 0) return true
-        console.log("near")
 
         if (this.maxIndex !== null && this.minIndex !== null) {
             if (this.minIndex <= target && target <= this.maxIndex) {
@@ -124,13 +115,11 @@ export class LogPaginator {
                 return true // already inside
             }
             if (this.minIndex <= target && target <= this.maxIndex + this.pageSize) {
-                console.log(this.maxIndex, `+${this.pageSize} >=`, target)
                 onFuture()
                 // this.initFromIndex = target
                 return true
             }
             if (this.minIndex - this.pageSize <= target && target <= this.maxIndex) {
-                console.log(this.minIndex, `-${this.pageSize} <=`, target)
                 onPast()
                 // this.initFromIndex = target
                 return true
