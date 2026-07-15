@@ -5,10 +5,10 @@ const COLORS: Record<string, string> = {
     clear: "#00000000",
     black: "#000000FF",
     white: "#FFFFFFFF",
-    lightgray: "#BFBFBFFF",
+    lightgrey: "#BFBFBFFF",
     gray: "#7F7F7FFF",
     grey: "#7F7F7FFF",
-    darkgray: "#3F3F3FFF",
+    darkgrey: "#3F3F3FFF",
     blue: "#0000FFFF",
     navy: "#00007FFF",
     royal: "#4169E1FF",
@@ -93,16 +93,15 @@ export default function Text({ children }: MarkupTextProps) {
                         const tagContent = string.substring(start, closeIndex);
 
                         if (tagContent.startsWith('#')) {
-                            const hex = tagContent.substring(1);
+                            let hex = tagContent.substring(1);
+                            if (hex.length <= 6) {
+                                hex = hex.padEnd(6, '0');
+                            } else if (hex.length < 8) {
+                                hex = hex.padEnd(8, '0');
+                            }
+
                             if (/^[0-9a-fA-F]{6}$/.test(hex) || /^[0-9a-fA-F]{8}$/.test(hex)) {
                                 let cssColor = `#${hex.substring(0, 6)}`;
-                                if (hex.length === 8) {
-                                    const r = parseInt(hex.substring(0, 2), 16);
-                                    const g = parseInt(hex.substring(2, 4), 16);
-                                    const b = parseInt(hex.substring(4, 6), 16);
-                                    const a = parseInt(hex.substring(6, 8), 16) / 255;
-                                    cssColor = `rgba(${r}, ${g}, ${b}, ${a})`;
-                                }
                                 colorStack.push(cssColor);
                                 i = closeIndex + 1;
                                 continue;
