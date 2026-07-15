@@ -20,20 +20,28 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
 
     const { logs, loading, hasMoreOlder, hasMoreNewer, loadOlder, loadNewer, firstItemIndex, reallyFirstItemIndex, offset, scrollTarget, paginatorId } = useLogs({ initId: selectedId, filters, pageSize })
 
+    const needScroll = useRef<boolean>(true)
 
     useEffect(() => {
-        if (scrollTarget !== null && virtuosoRef.current) {
+        needScroll.current = true
+    }, [scrollTarget])
+
+    useEffect(() => {
+        if (scrollTarget !== null && virtuosoRef.current && needScroll.current) {
             requestAnimationFrame(() => {
                 setSelectedRow(selectedId)
                 virtuosoRef.current?.scrollToIndex({ index: scrollTarget - offset, align: 'center', behavior: 'smooth' })
             })
+            needScroll.current = false
         }
     }, [scrollTarget, offset])
+
 
     useEffect(() => {
         const index = reallyFirstItemIndex - firstItemIndex
         const isLoaded = index <= logs.length
-        if (virtuosoRef.current && logs.length > 0 && isLoaded && scrollTarget === null && selectedId !== null) {
+        console.log(needScroll.current)
+        if (virtuosoRef.current && logs.length > 0 && isLoaded && scrollTarget === null && selectedId !== null && needScroll.current) {
             requestAnimationFrame(() => {
                 if (virtuosoRef.current) {
                     virtuosoRef.current.scrollToIndex({
@@ -42,6 +50,7 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
                         behavior: 'auto'
                     });
                     setSelectedRow(reallyFirstItemIndex)
+                    needScroll.current = false
                 }
             });
         }
