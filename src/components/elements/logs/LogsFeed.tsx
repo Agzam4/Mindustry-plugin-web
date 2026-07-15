@@ -33,7 +33,7 @@ export function LogsFeed({ selectedId = null, onSelect = () => { }, filters = { 
     useEffect(() => {
         const index = reallyFirstItemIndex - firstItemIndex
         const isLoaded = index <= logs.length
-        if (virtuosoRef.current && logs.length > 0 && isLoaded && scrollTarget === null) {
+        if (virtuosoRef.current && logs.length > 0 && isLoaded && scrollTarget === null && selectedId !== null) {
             requestAnimationFrame(() => {
                 if (virtuosoRef.current) {
                     virtuosoRef.current.scrollToIndex({
