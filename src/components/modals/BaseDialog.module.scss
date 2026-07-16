@@ -1,0 +1,36 @@
+.container {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    justify-content: center;
+    grid-template-rows: 1fr auto 3fr;
+
+}
+
+.box {
+    grid-row: 2;
+
+    max-width: 400px;
+    width: calc(100vw - 32px);
+
+    border: var(--border);
+    padding: var(--gap-y2) var(--gap-x2);
+    background-color: var(--bg-primary);
+    border-radius: var(--border-radius);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+    overflow-y: auto;
+
+    margin-top: 16px;
+    margin-bottom: 16px;
+    max-height: calc(100% - 32px);
+}
+
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: auto;
+
+    background-color: rgba(0, 0, 0, 0.3);
+}
