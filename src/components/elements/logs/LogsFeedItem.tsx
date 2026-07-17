@@ -66,7 +66,7 @@ export const LogsFeedItem = memo(function LogsFeedItem({ entry, selected, onClic
 
     return (
         <div
-            className={`${style.item} ${selected ? style.itemSelected : ''} ${style['tag_' + tagName] ?? ''}`}
+            className={`${style.item} ${selected ? style.itemSelected : ''} ${style['tag-' + tagName] ?? ''}`}
             data-global-id={entry.globalId}
             onClick={() => onClick(entry)}
             role="button"

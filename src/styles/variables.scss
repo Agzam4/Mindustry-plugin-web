@@ -48,8 +48,45 @@
     --teal: #1abc9c;
     --yellow: #f5c842;
 
-    --log-green: #4ecca3;
-    --log-green-dim: #2a8a6a;
+    --pal-clear: #00000000;
+    --pal-black: #000000FF;
+    --pal-white: #FFFFFFFF;
+    --pal-lightgrey: #BFBFBFFF;
+    --pal-gray: #7F7F7FFF;
+    --pal-grey: #7F7F7FFF;
+    --pal-darkgrey: #3F3F3FFF;
+    --pal-blue: #0000FFFF;
+    --pal-navy: #00007FFF;
+    --pal-royal: #4169E1FF;
+    --pal-slate: #700090FF;
+    --pal-sky: #87CEEBFF;
+    --pal-cyan: #00FFFFFF;
+    --pal-teal: #007F7FFF;
+    --pal-green: #00FF00FF;
+    --pal-acid: #7FFF00FF;
+    --pal-lime: #32CD32FF;
+    --pal-forest: #228B22FF;
+    --pal-olive: #6B8E23FF;
+    --pal-yellow: #FFFF00FF;
+    --pal-gold: #FFD700FF;
+    --pal-goldenrod: #DAA520FF;
+    --pal-orange: #FFA500FF;
+    --pal-brown: #8B4513FF;
+    --pal-tan: #D2B48CFF;
+    --pal-brick: #B22222FF;
+    --pal-red: #e55454;
+    --pal-scarlet: #FF341CFF;
+    --pal-coral: #FF7F50FF;
+    --pal-salmon: #FA8072FF;
+    --pal-pink: #FF69B4FF;
+    --pal-magenta: #FF00FFFF;
+    --pal-purple: #8000FFFF;
+    --pal-violet: #EE82EEFF;
+    --pal-maroon: #B03060FF;
+
+
+    --log-green: var(--pal-green);
+    --log-green-dim: var(--pal-olive);
     --log-red: #e94560;
     --log-red-dim: #a03045;
     --log-yellow: #f5c842;

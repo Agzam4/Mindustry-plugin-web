@@ -140,8 +140,6 @@
     grid-template-rows: auto;
     gap: 6px;
     padding: 4px var(--gap-x1) 4px 0;
-    // cursor: pointer;
-    // border-left: 3px solid var(--pal-shades-500);
     transition: 0.08s;
     font-size: 0.7rem;
     position: relative;
@@ -150,27 +148,6 @@
     &:hover {
         background: rgba(255, 255, 255, 0.03);
     }
-
-    // &[data-global-id="0"] {
-    //
-    //     margin-top: 2em;
-    //     position: relative;
-    //
-    //     &:before {
-    //         content: ' ';
-    //         user-select: none;
-    //         pointer-events: none;
-    //         position: absolute;
-    //         left: .5rem;
-    //         right: .5rem;
-    //         top: calc(2em / -2);
-    //
-    //         height: 1.5px;
-    //
-    //         background: var(--border-color);
-    //
-    //     }
-    // }
 }
 
 
@@ -182,14 +159,15 @@
     justify-content: center;
     padding-right: 4px;
 
+
     &::before {
         content: '';
         position: absolute;
         display: block;
-        width: 2px;
+        width: 1.5px;
         height: 90%;
-        border-radius: 0px 3px 3px 0px;
-        background: var(--text);
+        // border-radius: 0px 3px 3px 0px;
+        background: var(--color);
         top: 50%;
         transform: translateY(-50%);
     }
@@ -198,9 +176,9 @@
 .itemSelected {
     background: var(--bg-accent) !important;
 
-    .itemDot::before {
-        background: var(--accent);
-    }
+    // .itemDot::before {
+    // background: var(--accent);
+    // }
 }
 
 .itemTime {
@@ -223,84 +201,44 @@
 
 // Color coding by event tag
 
-.tag_server-start {
-    border-left-color: #4ecca3;
+.tag-server-start {
+    --color: var(--pal-green);
 }
 
-.tag_server-start .itemDot::before {
-    background: #4ecca3;
+.tag-chat-message {
+    --color: var(--pal-coral);
 }
 
-.tag_chat-message {
-    border-left-color: #4ea8de;
+.tag-player-command {
+    --color: var(--pal-goldenrod);
 }
 
-.tag_chat-message .itemDot::before {
-    background: #4ea8de;
+.tag-admin-command {
+    --color: var(--pal-scarlet);
 }
 
-.tag_player-command {
-    border-left-color: #f5c842;
+.tag-kick {
+    --color: var(--pal-magenta);
 }
 
-.tag_player-command .itemDot::before {
-    background: #f5c842;
+.tag-votekick {
+    --color: var(--pal-purple)
 }
 
-.tag_admin-command {
-    border-left-color: #ff8c42;
+.tag-player-leave {
+    --color: var(--pal-brick)
 }
 
-.tag_admin-command .itemDot::before {
-    background: #ff8c42;
+.tag-player-join {
+    --color: var(--pal-olive)
 }
 
-.tag_kick {
-    border-left-color: #e94560;
+.tag-game-over {
+    --color: var(--pal-royal)
 }
 
-.tag_kick .itemDot::before {
-    background: #e94560;
-}
-
-.tag_votekick {
-    border-left-color: #a855f7;
-}
-
-.tag_votekick .itemDot::before {
-    background: #a855f7;
-}
-
-.tag_player-leave {
-    border-left-color: #f5c842;
-}
-
-.tag_player-leave .itemDot::before {
-    background: #f5c842;
-}
-
-.tag_player-join {
-    border-left-color: #4ecca3;
-}
-
-.tag_player-join .itemDot::before {
-    background: #4ecca3;
-}
-
-.tag_game-over {
-    border-left-color: #e94560;
-}
-
-.tag_game-over .itemDot::before {
-    background: #e94560;
-}
-
-.tag_game-begin {
-    border-left-color: #4ecca3;
-}
-
-.tag_game-begin .itemDot::before {
-    background: #4ecca3;
+.tag-game-begin {
+    --color: var(--pal-sky)
 }
 
 
