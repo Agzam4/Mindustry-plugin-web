@@ -5,8 +5,13 @@ import { useEffect, useState } from 'react';
 import style from './Player.module.scss'
 import ContextMenuWrapper, { type ContextMenuItem } from '../context/ContextMenuWrapper';
 import { useLogFilterStore } from '@/components/elements/logs/useFiltersStore';
+import { useModal } from '@ebay/nice-modal-react';
+import { PlayerProfile } from '@/components/modals/profile/PlayerProfile';
 
 export default function Player({ id }: { id: number }) {
+
+    const modal = useModal(PlayerProfile);
+
     const [info, setInfo] = useState<ResolvedPlayerInfo | null>(null);
 
     const applySplashFilter = useLogFilterStore((state) => state.applySplashFilter);
@@ -27,6 +32,16 @@ export default function Player({ id }: { id: number }) {
         {
             key: "info",
             label: `${info?.name ?? ""} [accent]${info?.uuid ?? ""}`,
+            isSeparator: true
+        },
+        {
+            key: "profile",
+            label: `profile`,
+            action: () => {
+                setTimeout(() => {
+                    modal.show({ player: id })
+                }, 0)
+            },
             isSeparator: true
         },
         {

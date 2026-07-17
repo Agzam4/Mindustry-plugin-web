@@ -1,0 +1,44 @@
+.title {
+    font-weight: bold;
+    margin: var(--gap-y1) 0
+}
+
+.separator {
+
+    display: grid;
+    grid-template-columns: 1rem auto 1fr;
+    column-gap: .5rem;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+
+    &::before,
+    &::after {
+        content: ' ';
+        color: transparent;
+        height: 1.5px;
+        width: 100%;
+        white-space: random;
+        background-color: var(--border-color);
+    }
+
+    // margin-top: 1em;
+    // margin-bottom: var(--gap-y1)
+}
+
+
+.group {
+    display: grid;
+    grid-template-columns: 1fr
+}
+
+
+.gap {
+    height: var(--gap-y1);
+}
+
+
+.scroll {
+    overflow-y: auto;
+    max-height: 100%;
+}
