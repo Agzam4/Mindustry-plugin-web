@@ -84,6 +84,11 @@
     --pal-violet: #EE82EEFF;
     --pal-maroon: #B03060FF;
 
+    --pal-accent: #FFD38FFF;
+    --pal-unlaunched: #8982EDFF;
+    --pal-highlight: #FFFBFFFF;
+    --pal-stat: #FFD37FFF;
+    --pal-negstat: #E55454FF;
 
     --log-green: var(--pal-green);
     --log-green-dim: var(--pal-olive);
@@ -163,4 +168,27 @@ button:hover {
 
 span {
     text-decoration: inherit;
+}
+
+
+
+.no-button {
+    font: inherit;
+    display: inline;
+    line-height: inherit;
+
+    color: inherit;
+    border: none;
+    padding: 0 .5rem;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    vertical-align: bottom;
+    text-align: inherit;
+    appearance: none;
+
+    border-radius: 3px;
+    user-select: auto !important;
 }
