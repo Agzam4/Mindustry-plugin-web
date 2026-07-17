@@ -47,7 +47,7 @@ export class LogBuffer {
     }
 
     private async fetch(fromId: number, limit: number, signal?: AbortSignal) {
-        const [data] = await Api.logs.search({
+        const [data] = await Api.logs.filter({
             id: fromId,
             limit,
             t1: 0, t2: 999999999999999,
