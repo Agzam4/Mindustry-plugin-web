@@ -1,0 +1,44 @@
+.table {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    row-gap: var(--gap-y1);
+    margin-top: var(--gap-y2);
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.name {
+    font-weight: bold;
+}
+
+.adminName {
+    font-style: italic;
+    margin-left: 1rem;
+}
+
+
+.permissions {
+    display: flex;
+    gap: var(--gap-y1);
+    margin-left: 1rem;
+}
+
+.header {
+    font-weight: bold;
+    color: var(--text-bright);
+    border-bottom: var(--border);
+    padding-bottom: var(--gap-y1);
+}
+
+.permission {
+    cursor: pointer;
+    color: var(--pal-accent);
+    background-color: var(--bg-accent);
+    border-radius: 3px;
+    padding: 0 0.5rem;
+
+    &:hover {
+        text-decoration: underline;
+        text-decoration-thickness: 1.5px;
+    }
+}

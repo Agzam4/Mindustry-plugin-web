@@ -15,6 +15,10 @@ export const routers: Router[] = [
     {
         path: '/logs',
         icon: Icons.logs
+    },
+    {
+        path: '/admins',
+        icon: Icons.dashboard
     }
 ]
 

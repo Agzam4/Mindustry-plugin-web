@@ -1,0 +1,13 @@
+.panels {
+    display: grid;
+    // grid-template-columns: 1fr auto 1fr;
+}
+
+
+.left {
+    background-color: var(--bg-secondary)
+}
+
+.center {
+    background-color: var(--bg-primary);
+}

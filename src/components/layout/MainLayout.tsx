@@ -6,6 +6,7 @@ import { Redirect, Route } from "wouter";
 
 import DesktopLayout from './DesktopLayout.module.scss';
 import AuthPage from "@/pages/auth/AuthPage";
+import AdminsPage from "@/pages/admins/AdminsPage";
 
 export function MainLayout() {
     return (
@@ -19,6 +20,7 @@ export function MainLayout() {
                 <Route path="/auth/:token">
                     {({ token }) => <AuthPage token={token} />}
                 </Route>
+                <Route path="/admins"><AdminsPage /></Route>
             </Suspense>
         </div>
     );
