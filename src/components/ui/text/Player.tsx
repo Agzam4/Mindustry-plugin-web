@@ -8,7 +8,7 @@ import { useLogFilterStore } from '@/components/elements/logs/useFiltersStore';
 import { useModal } from '@ebay/nice-modal-react';
 import { PlayerProfile } from '@/components/modals/profile/PlayerProfile';
 
-export default function Player({ id }: { id: number }) {
+export default function Player({ id, name, loading }: { id: number, name?: string, loading?: string }) {
 
     const modal = useModal(PlayerProfile);
 
@@ -70,7 +70,7 @@ export default function Player({ id }: { id: number }) {
     return (
         <ContextMenuWrapper items={menuItems}>
             <button className={style.playerTrigger} title={info?.uuid} type="button">
-                <Text>{info?.name ?? "Loading..."}</Text>
+                <Text>{name ?? info?.name ?? loading ?? "Loading..."}</Text>
             </button>
         </ContextMenuWrapper>
     );
