@@ -1,0 +1,30 @@
+.container {
+    border: var(--border);
+    border-style: dashed;
+    border-width: 3px;
+    cursor: pointer;
+    transition: var(--transition);
+
+    &:hover {
+        border-style: solid;
+        background-color: var(--border-color);
+        border-color: var(--text)
+    }
+
+    display: flex;
+}
+
+.dropzone {
+    width: 100%;
+    outline-width: 3px;
+    padding: var(--gap-x1);
+    display: grid;
+    grid-template-rows: 3em auto;
+    align-items: center;
+    justify-items: center;
+}
+
+.icon {
+    height: 1.5em;
+    aspect-ratio: 1 / 1;
+}
