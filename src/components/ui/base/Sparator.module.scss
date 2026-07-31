@@ -1,0 +1,22 @@
+.separator {
+    font-weight: bold;
+    display: grid;
+    grid-template-columns: 1rem auto 1fr;
+    column-gap: .5rem;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    color: var(--text-bright);
+    margin-top: .25rem;
+    margin-bottom: .25rem;
+
+    &::before,
+    &::after {
+        content: ' ';
+        color: transparent;
+        height: 1.5px;
+        width: 100%;
+        white-space: random;
+        background-color: var(--border-color);
+    }
+}
