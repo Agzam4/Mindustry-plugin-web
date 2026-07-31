@@ -40,6 +40,8 @@ const COLORS: Record<string, string> = {
     violet: "#EE82EEFF",
     maroon: "#B03060FF",
 
+    crimson: "#dc143c",
+
     accent: "#FFD37FFF",
     unlaunched: "#8982EDFF",
     highlight: "#FFFBFFFF",
