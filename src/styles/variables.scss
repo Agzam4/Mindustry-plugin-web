@@ -106,6 +106,7 @@
 
     /* Transition */
     --transition: .2s ease;
+    --underline: underline 1.5px solid currentColor;
 
 
     color: var(--text);
@@ -121,24 +122,6 @@ body {
 *:focus-visible {
     outline: 2px solid var(--focus);
 }
-
-
-button {
-    // user-select: none;
-    // font-size: 0.7rem;
-    // border: none;
-    // color: var(--text-bright);
-    // background-color: var(--border-color);
-    // padding: var(--gap-y1) var(--gap-x1);
-    // font-weight: bold;
-    // border-radius: var(--border-radius);
-    // transition: var(--transition);
-}
-
-button:hover {
-    // background-color: var(--accent-darker);
-}
-
 
 .screen {
     position: fixed;
@@ -176,6 +159,7 @@ span {
     font: inherit;
     display: inline;
     line-height: inherit;
+    text-align: inherit;
 
     color: inherit;
     border: none;
