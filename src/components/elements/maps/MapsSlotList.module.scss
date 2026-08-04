@@ -1,0 +1,53 @@
+.box {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: var(--gap-x1)
+}
+
+.mapSlot {
+    color: var(--text-bright);
+    display: grid;
+
+    a {
+        text-decoration: none;
+        color: inherit;
+
+        &:hover {
+            text-decoration: underline 1.5px solid currentColor;
+        }
+    }
+}
+
+
+.disabled {
+    color: var(--text);
+    font-style: italic;
+
+    font-weight: normal;
+    text-decoration: line-through 1.5px solid currentColor;
+}
+
+.status {
+    // cursor: default;
+    //
+
+    &[data-status="build-in"] {
+        color: var(--text)
+    }
+
+    &[data-status="custom"] {
+        color: var(--pal-accent)
+    }
+
+    &[data-status="rejected"] {
+        color: var(--pal-red)
+    }
+
+    &[data-status="approved"] {
+        color: var(--pal-green)
+    }
+
+    &[data-status="verification"] {
+        color: var(--pal-sky)
+    }
+}
