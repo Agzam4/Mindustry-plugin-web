@@ -9,7 +9,7 @@ import { useSearchParams } from 'wouter'
 import style from './AdminsPage.module.scss'
 import AdminsList from '@/components/elements/admins/AdminsList'
 
-export default function LogsPage() {
+export default function LogsPage({ id }: { id?: number }) {
 
 
     return (

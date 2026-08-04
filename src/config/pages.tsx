@@ -18,7 +18,11 @@ export const routers: Router[] = [
     },
     {
         path: '/admins',
-        icon: Icons.dashboard
+        icon: Icons.admin
+    },
+    {
+        path: "/maps",
+        icon: Icons.map
     }
 ]
 
