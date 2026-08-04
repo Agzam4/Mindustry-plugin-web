@@ -1,0 +1,128 @@
+.container {
+    padding: var(--gap-x1);
+    max-width: 500px;
+}
+
+
+.name {
+    margin-top: .5rem;
+    font-weight: bold;
+
+    display: grid;
+    grid-template-columns: 1rem auto 1fr;
+    column-gap: .5rem;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    color: var(--text-bright);
+    margin-bottom: .5rem;
+
+    &::before,
+    &::after {
+        content: ' ';
+        color: transparent;
+        height: 1.5px;
+        width: 100%;
+        white-space: random;
+        background-color: var(--border-color);
+    }
+
+
+    &.editable:hover {
+        text-decoration: underline solid 1.5px currentColor;
+    }
+
+    &.editable:focus-visible {
+        outline: 2px solid #0070f3;
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    button {
+        padding: 0;
+    }
+}
+
+
+.upload {
+    margin-top: .5rem;
+}
+
+
+.send {
+    text-align: center;
+    width: 100%;
+    font: inherit;
+    margin-top: var(--gap-y1);
+    color: var(--text-bright);
+    border: var(--border);
+    background: var(--border-color);
+    border-radius: var(--border-radius);
+    height: 2em;
+    transition: var(--transition);
+
+    &:hover:not(:disabled) {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
+
+    &:disabled {
+        cursor: default;
+        color: var(--text)
+    }
+
+}
+
+
+.approve,
+.reject {
+    font-weight: bold;
+
+
+    &::before {
+        content: '['
+    }
+
+    &::after {
+        content: ']'
+    }
+
+    &:hover {
+        text-decoration: var(--underline);
+    }
+}
+
+.approve {
+    color: var(--pal-lime);
+}
+
+.reject {
+    color: var(--pal-red);
+}
+
+.authorOption {
+    display: grid;
+    align-items: start;
+
+    background-color: var(--bg-muted)
+}
+
+
+
+.events {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    // row-gap: var(--gap-y1);
+}
+
+
+.eventRow {
+    display: contents;
+
+    &:hover {
+        .eventName {
+            text-decoration: var(--underline);
+
+        }
+    }
+}
