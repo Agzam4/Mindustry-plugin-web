@@ -1,0 +1,24 @@
+.panels {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    background-color: var(--bg-primary);
+}
+
+
+.left {
+    background: var(--bg-secondary);
+    border-right: var(--border);
+    overflow-y: auto;
+    padding: var(--gap-y1) var(--gap-x1)
+}
+
+.right {
+    background: var(--bg-secondary);
+    border-left: var(--border);
+    overflow-y: auto;
+    padding: var(--gap-y1) var(--gap-x1)
+}
+
+.center {
+    background-color: var(--bg-primary);
+}

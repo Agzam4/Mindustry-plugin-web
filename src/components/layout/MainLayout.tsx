@@ -8,6 +8,7 @@ import DesktopLayout from './DesktopLayout.module.scss';
 import AuthPage from "@/pages/auth/AuthPage";
 import AdminsPage from "@/pages/admins/AdminsPage";
 import MapsPage from "@/pages/maps/MapsPage";
+import McpPage from "@/pages/mcp/McpPage";
 
 export function MainLayout() {
     return (
@@ -23,6 +24,7 @@ export function MainLayout() {
                 </Route>
                 <Route path="/admins"><AdminsPage /></Route>
                 <Route path="/maps/:type?/:id?">{(p) => <MapsPage type={p.type} id={p.id} />}</Route>
+                <Route path="/mcp"><McpPage /></Route>
             </Suspense>
         </div>
     );

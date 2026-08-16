@@ -5,10 +5,9 @@ import { Link, useRoute } from 'wouter';
 
 function NavbarItem({ router }: { router: Router }) {
     const [isActive] = useRoute(router.path);
-
     return (
         <Link href={router.path} className={clsx(style.item, isActive && style.active)}>
-            <router.icon />
+            {router.icon ? <router.icon /> : router.path.substring(1)}
         </Link>
     );
 }
