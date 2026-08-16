@@ -13,7 +13,7 @@ import { useState } from "react"
 
 export default function AdminsList() {
 
-    const [admins, error, loading] = ApiHooks.admins.useHelpers()
+    const [admins, error, loading, setAdmins] = ApiHooks.admins.useHelpers()
     const [_, update] = useState({})
 
     if (error) return <HttpError error={error} />;
