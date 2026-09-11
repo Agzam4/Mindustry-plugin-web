@@ -1,0 +1,199 @@
+.container {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    height: 100vh;
+}
+
+.sidebar {
+    background: var(--bg-secondary);
+    border-right: var(--border);
+    padding: var(--gap-y2) 0;
+    overflow-y: auto;
+}
+
+.sidebarTitle {
+    padding: 0 var(--gap-x1);
+    margin-bottom: var(--gap-y2);
+    font-weight: bold;
+    color: var(--text-bright);
+    font-size: 0.9rem;
+}
+
+.groupItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--gap-y1) var(--gap-x1);
+    cursor: pointer;
+    transition: background var(--transition);
+
+    &:hover {
+        background: var(--bg-accent);
+    }
+}
+
+.groupItemActive {
+    background: var(--bg-accent);
+    color: var(--text-bright);
+}
+
+.groupName {
+    font-weight: 500;
+}
+
+.groupBadge {
+    background: var(--bg-muted);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    min-width: 24px;
+    text-align: center;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mainHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-x1);
+    padding: var(--gap-y2) var(--gap-x2);
+    border-bottom: var(--border);
+}
+
+.mainTitle {
+    font-weight: bold;
+    color: var(--text-bright);
+    font-size: 0.9rem;
+}
+
+.actions {
+    display: flex;
+    gap: var(--gap-x1);
+    padding: var(--gap-y1) var(--gap-x2);
+    border-bottom: var(--border);
+    background: var(--bg-muted);
+}
+
+.inputGroup {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.input {
+    background: var(--bg-secondary);
+    border: var(--border);
+    border-radius: var(--border-radius);
+    color: var(--text-bright);
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    width: 180px;
+    outline: none;
+
+    &:focus {
+        border-color: var(--accent);
+    }
+
+    &::placeholder {
+        color: var(--text);
+    }
+}
+
+.btn {
+    background: var(--bg-accent);
+    border: var(--border);
+    border-radius: var(--border-radius);
+    color: var(--text-bright);
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background var(--transition);
+
+    &:hover {
+        background: var(--bg-accent-hover);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.btnDanger {
+    color: var(--red);
+}
+
+.cidrList {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--gap-y1) 0;
+}
+
+.cidrItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px var(--gap-x2);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    transition: background var(--transition);
+
+    &:hover {
+        background: var(--bg-accent);
+    }
+}
+
+.cidrText {
+    color: var(--pal-accent);
+}
+
+.cidrRemove {
+    color: var(--text);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: color var(--transition);
+
+    &:hover {
+        color: var(--red);
+    }
+}
+
+.testResult {
+    padding: 4px 10px;
+    border-radius: var(--border-radius);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.testMatch {
+    color: var(--green);
+    background: rgba(67, 181, 129, 0.1);
+}
+
+.testNoMatch {
+    color: var(--red);
+    background: rgba(240, 71, 71, 0.1);
+}
+
+.empty {
+    color: var(--text);
+    text-align: center;
+    padding: var(--gap-x2);
+    font-style: italic;
+}
+
+.loading {
+    color: var(--text);
+    text-align: center;
+    padding: var(--gap-x2);
+}

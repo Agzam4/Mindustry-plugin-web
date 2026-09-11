@@ -27,6 +27,10 @@ export const routers: Router[] = [
     {
         path: "/mcp",
         icon: Icons.admin
+    },
+    {
+        path: "/bans",
+        icon: Icons.bans
     }
 ]
 
