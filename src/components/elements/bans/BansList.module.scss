@@ -73,16 +73,68 @@
 
 .actions {
     display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
     gap: var(--gap-x1);
     padding: var(--gap-y1) var(--gap-x2);
     border-bottom: var(--border);
     background: var(--bg-muted);
 }
 
+.actionBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 220px;
+}
+
+.actionRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .inputGroup {
     display: flex;
     align-items: center;
     gap: 4px;
+}
+
+.inputArea {
+    background: var(--bg-secondary);
+    border: var(--border);
+    border-radius: var(--border-radius);
+    color: var(--text-bright);
+    padding: 6px 8px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    width: 100%;
+    min-height: 3.5em;
+    box-sizing: border-box;
+    resize: vertical;
+    outline: none;
+
+    &:focus {
+        border-color: var(--accent);
+    }
+
+    &::placeholder {
+        color: var(--text);
+    }
+}
+
+.resultMsg {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.resultOk {
+    color: var(--green);
+}
+
+.resultErr {
+    color: var(--orange);
 }
 
 .input {

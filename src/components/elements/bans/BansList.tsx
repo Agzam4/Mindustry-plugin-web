@@ -7,6 +7,10 @@ import { useLocation } from "wouter"
 
 import style from './BansList.module.scss'
 
+const parseCidrs = (text: string): string[] => {
+    return [...new Set(text.split(/[\s,;]+/).map(p => p.trim()).filter(Boolean))]
+}
+
 export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?: string }) {
     const [groups, groupsError, , setGroups] = ApiHooks.bans.useGroups()
     const [, setLocation] = useLocation()
@@ -17,6 +21,8 @@ export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?
 
     const [addInput, setAddInput] = useState("")
     const [removeInput, setRemoveInput] = useState("")
+    const [addResult, setAddResult] = useState<{ ok: boolean; text: string } | null>(null)
+    const [removeResult, setRemoveResult] = useState<{ ok: boolean; text: string } | null>(null)
     const [testInput, setTestInput] = useState("")
     const [testResult, setTestResult] = useState<boolean | null>(null)
     const [operating, setOperating] = useState(false)
@@ -50,25 +56,96 @@ export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?
         setSelectedGroup(name)
         setAddInput("")
         setRemoveInput("")
+        setAddResult(null)
+        setRemoveResult(null)
         setTestInput("")
         setTestResult(null)
     }, [setLocation])
 
-    const handleAdd = useCallback(async () => {
-        if (!selectedGroup || !addInput.trim()) return
+    const updateGroupSize = useCallback((size: number | null) => {
+        setGroups(prev => prev && size !== null ? prev.map(g => g.name === selectedGroup ? { ...g, size } : g) : prev)
+    }, [selectedGroup, setGroups])
+
+    const handleBulkAdd = useCallback(async () => {
+        if (!selectedGroup) return
+        const targets = parseCidrs(addInput)
+        if (targets.length === 0) return
         setOperating(true)
-        const [newSize, err] = await Api.bans.add({ group: selectedGroup, cidr: addInput.trim() })
-        setOperating(false)
-        if (err) {
-            alert(err.message)
+        setAddResult(null)
+
+        const toAdd = targets.filter(c => !cidrs.includes(c))
+        if (toAdd.length === 0) {
+            setAddResult({ ok: true, text: "All entered CIDRs are already in the list" })
+            setOperating(false)
             return
         }
-        setAddInput("")
-        if (newSize !== null) {
-            setGroups(prev => prev ? prev.map(g => g.name === selectedGroup ? { ...g, size: newSize } : g) : prev)
+
+        let added = 0
+        let failed = 0
+        const failedCidrs: string[] = []
+        let lastSize: number | null = null
+        for (const c of toAdd) {
+            const [size, err] = await Api.bans.add({ group: selectedGroup, cidr: c })
+            if (err) {
+                failed++
+                failedCidrs.push(c)
+                console.warn(err)
+            } else {
+                added++
+                lastSize = size
+            }
         }
+
+        updateGroupSize(lastSize)
         loadCidrs(selectedGroup)
-    }, [selectedGroup, addInput, loadCidrs, setGroups])
+        setAddInput(failedCidrs.join("\n"))
+        setAddResult({
+            ok: failed === 0,
+            text: failed === 0 ? `Added: ${added}` : `Added: ${added}, Failed: ${failed}`,
+        })
+        setOperating(false)
+    }, [selectedGroup, addInput, cidrs, loadCidrs, updateGroupSize])
+
+    const handleBulkRemove = useCallback(async () => {
+        if (!selectedGroup) return
+        const targets = parseCidrs(removeInput)
+        if (targets.length === 0) return
+        if (!confirm(`Remove ${targets.length} CIDR(s)?`)) return
+        setOperating(true)
+        setRemoveResult(null)
+
+        const toRemove = targets.filter(c => cidrs.includes(c))
+        if (toRemove.length === 0) {
+            setRemoveResult({ ok: true, text: "None of the entered CIDRs are in the list" })
+            setOperating(false)
+            return
+        }
+
+        let removed = 0
+        let failed = 0
+        const failedCidrs: string[] = []
+        let lastSize: number | null = null
+        for (const c of toRemove) {
+            const [size, err] = await Api.bans.remove({ group: selectedGroup, cidr: c })
+            if (err) {
+                failed++
+                failedCidrs.push(c)
+                console.warn(err)
+            } else {
+                removed++
+                lastSize = size
+            }
+        }
+
+        updateGroupSize(lastSize)
+        loadCidrs(selectedGroup)
+        setRemoveInput(failedCidrs.join("\n"))
+        setRemoveResult({
+            ok: failed === 0,
+            text: failed === 0 ? `Removed: ${removed}` : `Removed: ${removed}, Failed: ${failed}`,
+        })
+        setOperating(false)
+    }, [selectedGroup, removeInput, cidrs, loadCidrs, updateGroupSize])
 
     const handleRemove = useCallback(async (cidr: string) => {
         if (!selectedGroup) return
@@ -79,20 +156,9 @@ export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?
             alert(err.message)
             return
         }
-        if (cidr === removeInput.trim()) {
-            setRemoveInput("")
-        }
-        if (newSize !== null) {
-            setGroups(prev => prev ? prev.map(g => g.name === selectedGroup ? { ...g, size: newSize } : g) : prev)
-        }
+        updateGroupSize(newSize)
         loadCidrs(selectedGroup)
-    }, [selectedGroup, loadCidrs, setGroups, removeInput])
-
-    const handleRemoveByText = useCallback(async () => {
-        if (!selectedGroup || !removeInput.trim()) return
-        if (!confirm(`Remove ${removeInput.trim()}?`)) return
-        await handleRemove(removeInput.trim())
-    }, [selectedGroup, removeInput, handleRemove])
+    }, [selectedGroup, loadCidrs, updateGroupSize])
 
     const handleTest = useCallback(async () => {
         if (!selectedGroup || !testInput.trim()) return
@@ -128,49 +194,57 @@ export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?
                     <span className={style.mainTitle}>{selectedGroup}</span>
                 </div>
                 <div className={style.actions}>
-                    <div className={style.inputGroup}>
-                        <input
-                            className={style.input}
-                            placeholder="CIDR (e.g. 192.168.0.0/24)"
+                    <div className={style.actionBlock}>
+                        <textarea
+                            className={style.inputArea}
+                            placeholder={"Multiple CIDRs, one per line (or comma/space separated).\n192.168.0.0/24\n10.0.0.0/8"}
                             value={addInput}
                             onChange={e => setAddInput(e.target.value)}
-                            onKeyDown={e => e.key === "Enter" && handleAdd()}
+                            onKeyDown={e => (e.ctrlKey || e.metaKey) && e.key === "Enter" && handleBulkAdd()}
                             disabled={operating}
                         />
-                        <button className={style.btn} onClick={handleAdd} disabled={operating || !addInput.trim()}>
-                            Add
-                        </button>
+                        <div className={style.actionRow}>
+                            <button className={style.btn} onClick={handleBulkAdd} disabled={operating || !addInput.trim()}>
+                                Add
+                            </button>
+                            {addResult && <span className={clsx(style.resultMsg, addResult.ok ? style.resultOk : style.resultErr)}>{addResult.text}</span>}
+                        </div>
                     </div>
-                    <div className={style.inputGroup}>
-                        <input
-                            className={style.input}
-                            placeholder="CIDR to remove"
+                    <div className={style.actionBlock}>
+                        <textarea
+                            className={style.inputArea}
+                            placeholder={"Multiple CIDRs to remove, one per line.\n192.168.0.0/24"}
                             value={removeInput}
                             onChange={e => setRemoveInput(e.target.value)}
-                            onKeyDown={e => e.key === "Enter" && handleRemoveByText()}
+                            onKeyDown={e => (e.ctrlKey || e.metaKey) && e.key === "Enter" && handleBulkRemove()}
                             disabled={operating}
                         />
-                        <button className={clsx(style.btn, style.btnDanger)} onClick={handleRemoveByText} disabled={operating || !removeInput.trim()}>
-                            Remove
-                        </button>
+                        <div className={style.actionRow}>
+                            <button className={clsx(style.btn, style.btnDanger)} onClick={handleBulkRemove} disabled={operating || !removeInput.trim()}>
+                                Remove
+                            </button>
+                            {removeResult && <span className={clsx(style.resultMsg, removeResult.ok ? style.resultOk : style.resultErr)}>{removeResult.text}</span>}
+                        </div>
                     </div>
-                    <div className={style.inputGroup}>
-                        <input
-                            className={style.input}
-                            placeholder="IP to test"
-                            value={testInput}
-                            onChange={e => setTestInput(e.target.value)}
-                            onKeyDown={e => e.key === "Enter" && handleTest()}
-                            disabled={operating}
-                        />
-                        <button className={style.btn} onClick={handleTest} disabled={operating || !testInput.trim()}>
-                            Test
-                        </button>
-                        {testResult !== null && (
-                            <span className={clsx(style.testResult, testResult ? style.testMatch : style.testNoMatch)}>
-                                {testResult ? "Match" : "No match"}
-                            </span>
-                        )}
+                    <div className={style.actionBlock}>
+                        <div className={style.inputGroup}>
+                            <input
+                                className={style.input}
+                                placeholder="IP to test"
+                                value={testInput}
+                                onChange={e => setTestInput(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && handleTest()}
+                                disabled={operating}
+                            />
+                            <button className={style.btn} onClick={handleTest} disabled={operating || !testInput.trim()}>
+                                Test
+                            </button>
+                            {testResult !== null && (
+                                <span className={clsx(style.testResult, testResult ? style.testMatch : style.testNoMatch)}>
+                                    {testResult ? "Match" : "No match"}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <div className={style.cidrList}>
