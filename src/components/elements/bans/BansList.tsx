@@ -11,6 +11,8 @@ const parseCidrs = (text: string): string[] => {
     return [...new Set(text.split(/[\s,;]+/).map(p => p.trim()).filter(Boolean))]
 }
 
+type Tab = "add" | "remove" | "test"
+
 export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?: string }) {
     const [groups, groupsError, , setGroups] = ApiHooks.bans.useGroups()
     const [, setLocation] = useLocation()
@@ -19,6 +21,7 @@ export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?
     const [loadingCidrs, setLoadingCidrs] = useState(false)
     const [cidrsError, setCidrsError] = useState<{ code: number; message: string } | null>(null)
 
+    const [tab, setTab] = useState<Tab>("add")
     const [addInput, setAddInput] = useState("")
     const [removeInput, setRemoveInput] = useState("")
     const [addResult, setAddResult] = useState<{ ok: boolean; text: string } | null>(null)
@@ -192,60 +195,7 @@ export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?
             {selectedGroup ? <>
                 <div className={style.mainHeader}>
                     <span className={style.mainTitle}>{selectedGroup}</span>
-                </div>
-                <div className={style.actions}>
-                    <div className={style.actionBlock}>
-                        <textarea
-                            className={style.inputArea}
-                            placeholder={"Multiple CIDRs, one per line (or comma/space separated).\n192.168.0.0/24\n10.0.0.0/8"}
-                            value={addInput}
-                            onChange={e => setAddInput(e.target.value)}
-                            onKeyDown={e => (e.ctrlKey || e.metaKey) && e.key === "Enter" && handleBulkAdd()}
-                            disabled={operating}
-                        />
-                        <div className={style.actionRow}>
-                            <button className={style.btn} onClick={handleBulkAdd} disabled={operating || !addInput.trim()}>
-                                Add
-                            </button>
-                            {addResult && <span className={clsx(style.resultMsg, addResult.ok ? style.resultOk : style.resultErr)}>{addResult.text}</span>}
-                        </div>
-                    </div>
-                    <div className={style.actionBlock}>
-                        <textarea
-                            className={style.inputArea}
-                            placeholder={"Multiple CIDRs to remove, one per line.\n192.168.0.0/24"}
-                            value={removeInput}
-                            onChange={e => setRemoveInput(e.target.value)}
-                            onKeyDown={e => (e.ctrlKey || e.metaKey) && e.key === "Enter" && handleBulkRemove()}
-                            disabled={operating}
-                        />
-                        <div className={style.actionRow}>
-                            <button className={clsx(style.btn, style.btnDanger)} onClick={handleBulkRemove} disabled={operating || !removeInput.trim()}>
-                                Remove
-                            </button>
-                            {removeResult && <span className={clsx(style.resultMsg, removeResult.ok ? style.resultOk : style.resultErr)}>{removeResult.text}</span>}
-                        </div>
-                    </div>
-                    <div className={style.actionBlock}>
-                        <div className={style.inputGroup}>
-                            <input
-                                className={style.input}
-                                placeholder="IP to test"
-                                value={testInput}
-                                onChange={e => setTestInput(e.target.value)}
-                                onKeyDown={e => e.key === "Enter" && handleTest()}
-                                disabled={operating}
-                            />
-                            <button className={style.btn} onClick={handleTest} disabled={operating || !testInput.trim()}>
-                                Test
-                            </button>
-                            {testResult !== null && (
-                                <span className={clsx(style.testResult, testResult ? style.testMatch : style.testNoMatch)}>
-                                    {testResult ? "Match" : "No match"}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                    <span className={style.groupBadge}>{cidrs.length}</span>
                 </div>
                 <div className={style.cidrList}>
                     {cidrsError && <HttpError error={cidrsError} />}
@@ -268,5 +218,66 @@ export default function BansList({ selectedGroup: routeGroup }: { selectedGroup?
                 </div>
             </> : <div className={style.empty}>Select a group to view its CIDRs</div>}
         </div>
+        {selectedGroup && <div className={style.panel}>
+            <div className={style.tabs}>
+                <button className={clsx(style.tab, tab === "add" && style.tabActive)} onClick={() => setTab("add")}>Add</button>
+                <button className={clsx(style.tab, tab === "remove" && style.tabActive)} onClick={() => setTab("remove")}>Remove</button>
+                <button className={clsx(style.tab, tab === "test" && style.tabActive)} onClick={() => setTab("test")}>Test</button>
+            </div>
+            <div className={style.tabContent}>
+                {tab === "add" && <>
+                    <div className={style.actionRow}>
+                        <button className={style.btn} onClick={handleBulkAdd} disabled={operating || !addInput.trim()}>
+                            Add
+                        </button>
+                        {addResult && <div className={clsx(style.resultMsg, addResult.ok ? style.resultOk : style.resultErr)}>{addResult.text}</div>}
+                    </div>
+                    <textarea
+                        className={style.inputArea}
+                        placeholder={"Multiple CIDRs, one per line (or comma/space separated).\n192.168.0.0/24\n10.0.0.0/8"}
+                        value={addInput}
+                        onChange={e => setAddInput(e.target.value)}
+                        onKeyDown={e => (e.ctrlKey || e.metaKey) && e.key === "Enter" && handleBulkAdd()}
+                        disabled={operating}
+                    />
+                </>}
+                {tab === "remove" && <>
+                    <div className={style.actionRow}>
+                        <button className={clsx(style.btn, style.btnDanger)} onClick={handleBulkRemove} disabled={operating || !removeInput.trim()}>
+                            Remove
+                        </button>
+                        {removeResult && <div className={clsx(style.resultMsg, removeResult.ok ? style.resultOk : style.resultErr)}>{removeResult.text}</div>}
+                    </div>
+                    <textarea
+                        className={style.inputArea}
+                        placeholder={"Multiple CIDRs to remove, one per line.\n192.168.0.0/24"}
+                        value={removeInput}
+                        onChange={e => setRemoveInput(e.target.value)}
+                        onKeyDown={e => (e.ctrlKey || e.metaKey) && e.key === "Enter" && handleBulkRemove()}
+                        disabled={operating}
+                    />
+                </>}
+                {tab === "test" && <>
+                    <div className={style.actionRow}>
+                        <button className={style.btn} onClick={handleTest} disabled={operating || !testInput.trim()}>
+                            Test
+                        </button>
+                        {testResult !== null && (
+                            <div className={clsx(style.testResult, testResult ? style.testMatch : style.testNoMatch)}>
+                                {testResult ? "Match" : "No match"}
+                            </div>
+                        )}
+                    </div>
+                    <textarea
+                        className={style.inputArea}
+                        placeholder="IP to test"
+                        value={testInput}
+                        onChange={e => setTestInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && handleTest()}
+                        disabled={operating}
+                    />
+                </>}
+            </div>
+        </div>}
     </div>
 }
