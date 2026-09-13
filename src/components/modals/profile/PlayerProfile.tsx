@@ -2,7 +2,8 @@ import NiceModal, { useModal } from '@ebay/nice-modal-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import styleBase from '../BaseDialog.module.scss'
 import { BaseDialog } from '../BaseDialog';
-import { ApiHooks } from '@/api/gen/api-hooks';
+import { Api, type PlayerTrace } from '@/api/gen/api';
+import { useEffect, useState } from 'react';
 import Text from '@/components/ui/Text';
 
 import style from './PlayerProfile.module.scss'
@@ -14,7 +15,18 @@ export const PlayerProfile = NiceModal.create(({ player }: { player: number }) =
     const modal = useModal();
 
 
-    const [info, error, loading] = ApiHooks.info.usePlayerTrace({ id: player });
+    const [info, setInfo] = useState<PlayerTrace | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        setInfo(null);
+        Api.info.playerTrace({ id: player }).then(([res, err]) => {
+            if (!isMounted) return;
+            if (err) console.warn(err);
+            else setInfo(res);
+        });
+        return () => { isMounted = false; };
+    }, [player]);
 
     const now = Date.now()
 
