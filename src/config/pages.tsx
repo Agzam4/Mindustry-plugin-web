@@ -18,12 +18,16 @@ export const routers: Router[] = [
         icon: Icons.logs
     },
     {
+        path: "/maps",
+        icon: Icons.map
+    },
+    {
         path: '/admins',
         icon: Icons.admin
     },
     {
-        path: "/maps",
-        icon: Icons.map
+        path: "/bans",
+        icon: Icons.bans
     },
     {
         path: "/server",
@@ -33,10 +37,6 @@ export const routers: Router[] = [
     {
         path: "/mcp",
         icon: Icons.mcp
-    },
-    {
-        path: "/bans",
-        icon: Icons.bans
     }
 ]
 
