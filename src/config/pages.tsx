@@ -4,6 +4,7 @@ import type { ComponentType } from "react"
 
 export interface Router {
     readonly path: string
+    readonly match?: string
     readonly icon: ComponentType
 }
 
@@ -23,6 +24,11 @@ export const routers: Router[] = [
     {
         path: "/maps",
         icon: Icons.map
+    },
+    {
+        path: "/server",
+        match: "/server/:tool?",
+        icon: Icons.server
     },
     {
         path: "/mcp",
